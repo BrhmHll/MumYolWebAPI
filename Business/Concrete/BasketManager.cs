@@ -84,6 +84,12 @@ namespace Business.Concrete
         }
 
         [SecuredOperation("user,personnel,admin")]
+        public IDataResult<List<BasketDetailsDto>> GetAllDetails()
+        {
+            return new SuccessDataResult<List<BasketDetailsDto>>(_basketItemDal.GetBasketDetails(_userService.GetUser().Id));
+        }
+
+        [SecuredOperation("user,personnel,admin")]
         public IResult Update(BasketItem basketItem)
         {
             var item = _basketItemDal.Get(b => b.Id.Equals(basketItem.Id));

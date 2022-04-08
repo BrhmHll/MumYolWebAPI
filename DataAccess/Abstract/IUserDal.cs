@@ -11,5 +11,8 @@ namespace DataAccess.Abstract
     public interface IUserDal : IEntityRepository<User>
     {
         List<OperationClaim> GetClaims(User panelUser);
+        public void AddUserRole(int userId);
+        public User GetAdmin();
+
     }
 }

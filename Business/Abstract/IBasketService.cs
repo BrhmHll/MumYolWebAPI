@@ -17,5 +17,6 @@ namespace Business.Abstract
         IResult Delete(int basketItemId);
         IResult DeleteAll();
         IDataResult<List<BasketItem>> GetAll();
+        IDataResult<List<BasketDetailsDto>> GetAllDetails();
     }
 }

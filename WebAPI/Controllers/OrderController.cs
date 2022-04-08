@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace WebAPI.Controllers
@@ -70,6 +72,16 @@ namespace WebAPI.Controllers
 			return BadRequest(result);
 		}
 
-
+		[HttpGet("getallordersbystatusid")]
+		public IActionResult GetAllOrdersByStatusId(int statusId)
+		{
+			//Swagger
+			var result = _orderService.GetAllOrdersByStatusId(statusId);
+			if (result.Success)
+			{
+				return Ok(result);
+			}
+			return BadRequest(result);
+		}
 	}
 }

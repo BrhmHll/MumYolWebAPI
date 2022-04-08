@@ -33,9 +33,21 @@ namespace WebAPI.Controllers
 				return Ok(result);
 			}
 			return BadRequest(result);
-
-
 		}
+
+		[HttpGet("getallbyiswholesale")]
+		public IActionResult GetAllByIsWholesale(int topCategoryId)
+		{
+			//Swagger
+			var result = _categoryService.GetAllByIsWholesale(topCategoryId);
+			if (result.Success)
+			{
+				return Ok(result);
+			}
+			return BadRequest(result);
+		}
+
+		
 
 		[HttpPost("add")]
 		public IActionResult Add(Category category)

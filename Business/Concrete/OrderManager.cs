@@ -1,8 +1,10 @@
 ﻿using Business.Abstract;
 using Business.BusinessAspects.Autofac;
+using Business.Constants;
 using Business.ValidationRules.FluentValidation;
 using Core.Aspects.Autofac.Caching;
 using Core.Aspects.Autofac.Validation;
+using Core.Utilities.Integrations;
 using Core.Utilities.Results;
 using DataAccess.Abstract;
 using Entities.Concrete;
@@ -30,6 +32,25 @@ namespace Business.Concrete
             _orderItemDal = orderItemDal;
             _basketService = basketService;
             _productService = productService;
+        }
+
+        public IDataResult<List<OrderDetailsDto>> GetAllOrdersByStatusId(int statusId)
+        {
+            var orderDetailsDtos = new List<OrderDetailsDto>();
+            var orderDetailsDto = new OrderDetailsDto();
+
+            var orders = _orderDal.GetAll(o => o.OrderStatus.Equals(statusId));
+
+            foreach (var order in orders)
+            {
+                orderDetailsDto.OrderId = order.Id;
+                orderDetailsDto.CreatedDate = order.CreatedDate;
+                orderDetailsDto.UserId = order.UserId;
+                orderDetailsDto.OrderStatus = order.OrderStatus;
+                orderDetailsDto.OrderItems = _orderItemDal.GetAll(i => i.OrderId.Equals(order.Id));
+                orderDetailsDtos.Add(orderDetailsDto);
+            }
+            return new SuccessDataResult<List<OrderDetailsDto>>(orderDetailsDtos);
         }
 
         [SecuredOperation("user,personnel,admin")]
@@ -81,8 +102,9 @@ namespace Business.Concrete
                 orderItems.Add(orderItem);
             }
 
+            var user =_userService.GetUser();
             var order = new Order();
-            order.UserId = _userService.GetUser().Id;
+            order.UserId = user.Id;
             order.CreatedDate = DateTime.Now;
             order.OrderStatus = (int)OrderStatusEnum.Waiting;
             _orderDal.Add(order);
@@ -92,6 +114,9 @@ namespace Business.Concrete
                 item.OrderId = order.Id;
                 _orderItemDal.Add(item);
             }
+            var admin = _userService.GetAdmin();
+            var msg = string.Format(Messages.NewOrderMessage, admin.FirstName + " " + admin.LastName, user.FirstName + " " + user.LastName);
+            SmsIntegration.SendSms(admin.PhoneNumber, msg);
 
             _basketService.DeleteAll(); // Clear basket
 
@@ -103,6 +128,9 @@ namespace Business.Concrete
                 OrderStatus = order.OrderStatus,
                 UserId = order.UserId
             };
+
+
+
             return new SuccessDataResult<OrderDetailsDto>(orderDetailsDto);
         }
 

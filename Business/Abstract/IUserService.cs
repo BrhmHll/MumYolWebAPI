@@ -14,5 +14,6 @@ namespace Business.Abstract
         User GetByMail(string email);
         User GetByPhoneNumber(string phoneNumber);
         User GetUser();
+        User GetAdmin();
     }
 }

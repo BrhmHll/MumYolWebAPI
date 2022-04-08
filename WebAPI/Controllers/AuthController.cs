@@ -1,4 +1,6 @@
 ﻿using Business.Abstract;
+using Business.Constants;
+using Core.Utilities.Integrations;
 using Entities.DTOs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -20,12 +22,6 @@ namespace WebAPI.Controllers
             _authService = authService;
         }
 
-        //[HttpGet()]
-        //public IActionResult Index()
-        //{
-        //    return View("Home");
-        //}
-
         [HttpPost("login")]
         public ActionResult Login(UserForLoginDto panelUserForLoginDto)
         {
@@ -38,10 +34,10 @@ namespace WebAPI.Controllers
             var result = _authService.CreateAccessToken(userToLogin.Data);
             if (result.Success)
             {
-                return Ok(result.Data);
+                return Ok(result);
             }
 
-            return BadRequest(result.Message);
+            return BadRequest(result);
         }
 
         [HttpPost("register")]
@@ -57,10 +53,20 @@ namespace WebAPI.Controllers
             var result = _authService.CreateAccessToken(registerResult.Data);
             if (result.Success)
             {
-                return Ok(result.Data);
+                return Ok(result);
             }
 
-            return BadRequest(result.Message);
+            return BadRequest(result);
+        }
+
+        [HttpPost("sendsms")]
+        public ActionResult SendSms(string phone)
+        {
+            var code = SmsIntegration.GenerateCode();
+            var msg = string.Format(Messages.VerificationMessage, "Ibrahim Halil SAKAR", code);
+            var res = SmsIntegration.SendSms(phone, msg);
+            return Ok(res);
+
         }
     }
 }

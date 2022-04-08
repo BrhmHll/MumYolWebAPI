@@ -3,6 +3,7 @@ using Business.Constants;
 using Business.ValidationRules.FluentValidation;
 using Core.Aspects.Autofac.Validation;
 using Core.Entities.Concrete;
+using Core.Utilities.Integrations;
 using Core.Utilities.Results;
 using Core.Utilities.Security.Hashing;
 using Core.Utilities.Security.JWT;
@@ -24,6 +25,10 @@ namespace Business.Concrete
         [ValidationAspect(typeof(UserForRegisterDtoValidator))]
         public IDataResult<User> Register(UserForRegisterDto panelUserForRegisterDto, string password)
         {
+            var code = SmsIntegration.GenerateCode();
+            var msg = string.Format(Messages.VerificationMessage, panelUserForRegisterDto.FirstName + " " + panelUserForRegisterDto.LastName, code);
+            //SmsIntegration.SendSms(panelUserForRegisterDto.PhoneNumber, msg);
+
             byte[] passwordHash, passwordSalt;
             HashingHelper.CreatePasswordHash(password, out passwordHash, out passwordSalt);
             var panelUser = new User
@@ -35,9 +40,13 @@ namespace Business.Concrete
                 PasswordSalt = passwordSalt,
                 PhoneNumber = panelUserForRegisterDto.PhoneNumber,
                 Address = panelUserForRegisterDto.Address,
-                Status = true
+                Status = true,
+                CreatedDate = System.DateTime.Now,
+                PhoneNumberVerificated = false,
+                VerificationCode = code
             };
             _panelUserService.Add(panelUser);
+            
             return new SuccessDataResult<User>(panelUser, Messages.UserRegistered);
         }
         [ValidationAspect(typeof(UserForLoginDtoValidator))]

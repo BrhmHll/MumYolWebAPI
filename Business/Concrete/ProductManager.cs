@@ -27,10 +27,12 @@ namespace Business.Concrete
 	public class ProductManager : IProductService
 	{
 		IProductDal _productDal;
+		ICategoryService _categoryService;
 
-		public ProductManager(IProductDal productDal)
+		public ProductManager(IProductDal productDal, ICategoryService categoryService)
 		{
 			_productDal = productDal;
+			_categoryService = categoryService;
 		}
 
 		[SecuredOperation("personnel,admin")]
@@ -42,11 +44,49 @@ namespace Business.Concrete
 			IResult result = BusinessRules.Run(
 				//CheckIfProductCountOfCategoryCount(product.CategoryId),
 				CheckIfProductNameExists(product.Name));
-
 			if (result != null)
 				return result;
 
+			//var cat = _categoryService.GetById(product.CategoryId);
+			//if (!cat.Success)
+			//	return cat;
+
+
+			//// Wholesale 1   Retail 2    All 3 
+   //         if (cat.Data.TopCategoryId != 3)
+   //         {
+   //             if (product.RetailPrice != 0 && product.WholesalePrice != 0)
+   //             {
+			//		cat.Data.TopCategoryId = 3;
+			//	}
+   //             else if (product.RetailPrice == 0 && product.WholesalePrice != 0)
+   //             {
+   //                 if (cat.Data.TopCategoryId == 2)
+   //                 {
+			//			cat.Data.TopCategoryId = 3;
+			//		}
+   //                 else
+   //                 {
+			//			cat.Data.TopCategoryId = 1;
+			//		}
+   //             }
+   //             else if(product.RetailPrice != 0 && product.WholesalePrice == 0)
+   //             {
+			//		if (cat.Data.TopCategoryId == 1)
+			//		{
+			//			cat.Data.TopCategoryId = 3;
+			//		}
+			//		else
+			//		{
+			//			cat.Data.TopCategoryId = 2;
+			//		}
+			//	}
+			//	_categoryService.Update(cat.Data);
+			//}
+
 			_productDal.Add(product);
+			CheckCategory(product.CategoryId);
+
 			return new SuccessResult(Messages.ProductAdded);
 
 		}
@@ -55,11 +95,6 @@ namespace Business.Concrete
 		[CacheAspect]
 		public IDataResult<List<Product>> GetAll()
 		{
-			//İş Kodları
-			//if (DateTime.Now.Hour == 5)
-			//{
-			//	return new ErrorDataResult<List<Product>>(Messages.MaintenanceTime);
-			//}
 			return new SuccessDataResult<List<Product>>(_productDal.GetAll(p => p.IsActive.Equals(true)), Messages.ProductListed);
 		}
 
@@ -84,7 +119,7 @@ namespace Business.Concrete
 			return new SuccessDataResult<Product>(_productDal.Get(p => p.Id == productId));
 		}
 
-		[SecuredOperation("user,personnel,admin")]
+		[SecuredOperation("personnel,admin")]
 		public IResult SetActive(ProductActiveDto productActive)
         {
 			var product = GetById(productActive.ProductId);
@@ -106,9 +141,42 @@ namespace Business.Concrete
 		public IResult Update(Product product)
 		{
 			_productDal.Update(product);
+			CheckCategory(product.CategoryId);
 			return new SuccessResult();
 		}
 
+		private IResult CheckCategory(int categoryId)
+        {
+			var cat = _categoryService.GetById(categoryId).Data;
+			var products = GetAllByCategoryId(categoryId);
+			if (products.Data.Count == 0)
+            {
+				cat.TopCategoryId = 0;
+				_categoryService.Update(cat);
+				return new SuccessResult();
+            }
+
+			var wholesaleCount = 0;
+			var retailCount = 0;
+            foreach (var item in products.Data)
+            {
+                if (item.RetailPrice != 0)
+					retailCount += 1;
+				if (item.WholesalePrice != 0)							  
+					wholesaleCount += 1;
+			}
+			
+			if (retailCount > 0 && wholesaleCount > 0)
+				cat.TopCategoryId = 3;
+			else if(retailCount > 0)
+				cat.TopCategoryId = 2;
+			else
+				cat.TopCategoryId = 1;
+
+			_categoryService.Update(cat);
+
+			return new SuccessResult();
+		}
 
 		private IResult CheckIfProductCountOfCategoryCount(int categoryId)
 		{

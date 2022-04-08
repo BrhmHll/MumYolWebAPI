@@ -32,22 +32,28 @@ namespace Business.Concrete
         public void Add(User panelUser)
         {
             _panelUserDal.Add(panelUser);
+            _panelUserDal.AddUserRole(panelUser.Id);
         }
 
         public User GetByMail(string email)
         {
-            return _panelUserDal.Get(u => u.Email == email);
+            return _panelUserDal.Get(u => (u.Email == email) && u.Status);
         }
 
         public User GetByPhoneNumber(string phoneNumber)
         {
-            return _panelUserDal.Get(u => u.PhoneNumber == phoneNumber);
+            return _panelUserDal.Get(u => u.PhoneNumber == phoneNumber && u.Status);
         }
 
         public User GetUser()
         {
             var userId = Convert.ToInt32(_contextAccessor.HttpContext.User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).FirstOrDefault().Value);
             return _panelUserDal.Get(u => u.Id == userId);
+        }
+
+        public User GetAdmin()
+        {
+            return _panelUserDal.GetAdmin();
         }
     }
 }

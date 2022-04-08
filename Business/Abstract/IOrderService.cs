@@ -14,6 +14,7 @@ namespace Business.Abstract
     {
         IDataResult<OrderDetailsDto> OrderBasket();
         IDataResult<OrderDetailsDto> GetOrderDetailsById(int orderId);
+        IDataResult<List<OrderDetailsDto>> GetAllOrdersByStatusId(int statusId);
         IDataResult<List<Order>> GetOrdersByUser();
         IResult UpdateOrderStatus(UpdateOrderStatusDto updateOrderStatusDto);
     }

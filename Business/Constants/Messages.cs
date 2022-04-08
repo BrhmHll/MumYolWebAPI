@@ -9,6 +9,8 @@ namespace Business.Constants
 {
 	public static class Messages
 	{
+		public static string VerificationMessage = "Sn. {0}, doğrulama kodunuz: {1}";
+		public static string NewOrderMessage = "Sn. {0}, {1} kullanıcıdan yeni siparişiniz var!";
 		public static string Success = "Success";
 		public static string Error = "Error";
 
