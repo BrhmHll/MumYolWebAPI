@@ -28,7 +28,7 @@ namespace WebAPI.Controllers
             var userToLogin = _authService.Login(panelUserForLoginDto);
             if (!userToLogin.Success)
             {
-                return BadRequest(userToLogin.Message);
+                return BadRequest(userToLogin);
             }
 
             var result = _authService.CreateAccessToken(userToLogin.Data);
@@ -46,7 +46,7 @@ namespace WebAPI.Controllers
             var userExists = _authService.UserExists(panelUserForRegisterDto.PhoneNumber);
             if (!userExists.Success)
             {
-                return BadRequest(userExists.Message);
+                return BadRequest(userExists);
             }
 
             var registerResult = _authService.Register(panelUserForRegisterDto, panelUserForRegisterDto.Password);
@@ -66,6 +66,12 @@ namespace WebAPI.Controllers
             var msg = string.Format(Messages.VerificationMessage, "Ibrahim Halil SAKAR", code);
             var res = SmsIntegration.SendSms(phone, msg);
             return Ok(res);
+
+        }
+        [HttpGet("apitest")]
+        public ActionResult ApiTest()
+        {
+            return Ok("{\"message\" : \"Hello World! This is API Test.\"}");
 
         }
     }

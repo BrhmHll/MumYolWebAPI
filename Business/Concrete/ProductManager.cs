@@ -47,43 +47,6 @@ namespace Business.Concrete
 			if (result != null)
 				return result;
 
-			//var cat = _categoryService.GetById(product.CategoryId);
-			//if (!cat.Success)
-			//	return cat;
-
-
-			//// Wholesale 1   Retail 2    All 3 
-   //         if (cat.Data.TopCategoryId != 3)
-   //         {
-   //             if (product.RetailPrice != 0 && product.WholesalePrice != 0)
-   //             {
-			//		cat.Data.TopCategoryId = 3;
-			//	}
-   //             else if (product.RetailPrice == 0 && product.WholesalePrice != 0)
-   //             {
-   //                 if (cat.Data.TopCategoryId == 2)
-   //                 {
-			//			cat.Data.TopCategoryId = 3;
-			//		}
-   //                 else
-   //                 {
-			//			cat.Data.TopCategoryId = 1;
-			//		}
-   //             }
-   //             else if(product.RetailPrice != 0 && product.WholesalePrice == 0)
-   //             {
-			//		if (cat.Data.TopCategoryId == 1)
-			//		{
-			//			cat.Data.TopCategoryId = 3;
-			//		}
-			//		else
-			//		{
-			//			cat.Data.TopCategoryId = 2;
-			//		}
-			//	}
-			//	_categoryService.Update(cat.Data);
-			//}
-
 			_productDal.Add(product);
 			CheckCategory(product.CategoryId);
 
@@ -120,6 +83,7 @@ namespace Business.Concrete
 		}
 
 		[SecuredOperation("personnel,admin")]
+		[CacheRemoveAspect("IProductService.Get")]
 		public IResult SetActive(ProductActiveDto productActive)
         {
 			var product = GetById(productActive.ProductId);
