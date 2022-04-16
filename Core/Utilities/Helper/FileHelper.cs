@@ -22,21 +22,16 @@ namespace Core.Utilities.Helper
                 return new ErrorResult(fileExists.Message);
             }
 
-            var type = Path.GetExtension(file.FileName);
+            var type = Path.GetExtension(file.FileName).ToLower();
             var typeValid = CheckFileTypeValid(type);
             var randomName = Guid.NewGuid().ToString();
 
-            if (typeValid.Message != null)
-            {
-                return new ErrorResult(typeValid.Message);
-            }
+            if (!typeValid.Success)
+                return typeValid;
 
             CheckDirectoryExists(_currentDirectory + _folderName);
             CreateImageFile(_currentDirectory + _folderName + randomName + type, file);
             return new SuccessResult((_folderName + randomName + type).Replace("\\", "/"));
-
-
-
         }
 
         public static IResult Update(IFormFile file, string imagePath)
@@ -69,8 +64,6 @@ namespace Core.Utilities.Helper
         }
 
 
-
-
         private static IResult CheckFileExists(IFormFile file)
         {
             if (file != null && file.Length > 0)
@@ -83,6 +76,7 @@ namespace Core.Utilities.Helper
 
         private static IResult CheckFileTypeValid(string type)
         {
+            type = type.ToLower();
             if (type != ".jpeg" && type != ".png" && type != ".jpg")
             {
                 return new ErrorResult("Wrong file type.");

@@ -24,40 +24,28 @@ namespace WebAPI.Controllers
 			_productImageService = productImageService;
 		}
 
-		[HttpPost("addnewproductimagelink")]
-		public IActionResult AddNewProductImageLink([FromForm] ProductImage productImage)
-		{
-			var result = _productImageService.AddImageLink(productImage);
-			if (!result.Success)
-			{
-				return BadRequest(result.Message);
-			}
-			return Ok(Messages.Success);
-		}
+		//[HttpPost("addnewproductimagelink")]
+		//public IActionResult AddNewProductImageLink([FromForm] ProductImage productImage)
+		//{
+		//	var result = _productImageService.AddImageLink(productImage);
+		//	if (!result.Success)
+		//	{
+		//		return BadRequest(result);
+		//	}
+		//	return Ok(result);
+		//}
 
-		[HttpPost("updateproductimagelink")]
-		public IActionResult UpdateProductImageLink([FromForm(Name = ("Image"))] IFormFile file, [FromForm(Name = ("Id"))] int id)
-		{
-			var productImageResult = _productImageService.Get(id);
-			var result = _productImageService.UpdateImageLink(productImageResult.Data);
-			if (!result.Success)
-			{
-				return BadRequest(result.Message);
-			}
-			return Ok(Messages.Success);
-		}
-
-		[HttpPost("deleteproductimagelink")]
-		public IActionResult DeleteProductImageLink(ProductImage productImage)
-		{
-			var result = _productImageService.DeleteImageLink(productImage);
-			if (!result.Success)
-			{
-				return BadRequest(result.Message);
-			}
-			return Ok(Messages.Success);
-		}
-
+		//[HttpPost("updateproductimagelink")]
+		//public IActionResult UpdateProductImageLink([FromForm(Name = ("Image"))] IFormFile file, [FromForm(Name = ("Id"))] int id)
+		//{
+		//	var productImageResult = _productImageService.Get(id);
+		//	var result = _productImageService.UpdateImageLink(productImageResult.Data);
+		//	if (!result.Success)
+		//	{
+		//		return BadRequest(result);
+		//	}
+		//	return Ok(result);
+		//}
 
 		[HttpGet("getallimagesbyproductid")]
 		public IActionResult GetAllProductImagesByProductId(int productId)
@@ -82,14 +70,14 @@ namespace WebAPI.Controllers
 		}
 
 		[HttpPost("addnewproductimage")]
-		public IActionResult AddNewProductImage([FromForm(Name = ("Image"))] IFormFile file, [FromForm] ProductImage productImage)
+		public IActionResult AddNewProductImage([FromForm(Name = ("Image"))] IFormFile file, [FromForm] int productId)
 		{
-			var result = _productImageService.AddImage(file, productImage);
+			var result = _productImageService.AddImage(file, productId);
 			if (!result.Success)
 			{
-				return BadRequest(result.Message);
+				return BadRequest(result);
 			}
-			return Ok(Messages.Success);
+			return Ok(result);
 		}
 
 		[HttpPost("updateproductimage")]
@@ -99,20 +87,31 @@ namespace WebAPI.Controllers
 			var result = _productImageService.UpdateImage(file, productImageResult.Data);
 			if (!result.Success)
 			{
-				return BadRequest(result.Message);
+				return BadRequest(result);
 			}
-			return Ok(Messages.Success);
+			return Ok(result);
 		}
 
 		[HttpPost("deleteproductimage")]
-		public IActionResult DeleteProductImage(ProductImage productImage)
+		public IActionResult DeleteProductImage(int imageId)
 		{
-			var result = _productImageService.DeleteImage(productImage);
+			var result = _productImageService.DeleteImageById(imageId);
 			if (!result.Success)
 			{
-				return BadRequest(result.Message);
+				return BadRequest(result);
 			}
-			return Ok(Messages.Success);
+			return Ok(result);
+		}
+
+		[HttpPost("deleteallproductimagesbyproductid")]
+		public IActionResult DeleteAllProductImages(int productid)
+		{
+			var result = _productImageService.DeleteAllImagesByProductId(productid);
+			if (!result.Success)
+			{
+				return BadRequest(result);
+			}
+			return Ok(result);
 		}
 
 

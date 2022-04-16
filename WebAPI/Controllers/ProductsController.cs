@@ -93,5 +93,16 @@ namespace WebAPI.Controllers
 			return BadRequest(result);
 		}
 
+
+		[HttpPost("searchall")]
+		public IActionResult SearchAll(string serachKey)
+		{
+			var result = _productService.SearchAll(serachKey);
+			if (result.Success)
+			{
+				return Ok(result);
+			}
+			return BadRequest(result);
+		}
 	}
 }

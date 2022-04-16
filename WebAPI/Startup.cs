@@ -68,7 +68,22 @@ namespace WebAPI
 
 			services.AddSwaggerGen(c =>
 			{
-				c.SwaggerDoc("v1", new OpenApiInfo { Title = "WebAPI", Version = "v1" });
+				//c.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, new OpenApiSecurityScheme
+				//{
+
+				//	BearerFormat = JwtBearerDefaults.AuthenticationScheme,
+				//	Name = "Authorization",
+				//	In = ParameterLocation.Header,
+				//	Type = SecuritySchemeType.Http,
+				//	Scheme = JwtBearerDefaults.AuthenticationScheme,
+				//	//Reference = new OpenApiReference
+				//	//{
+				//	//	Id = JwtBearerDefaults.AuthenticationScheme,
+				//	//	Type = ReferenceType.Header
+				//	//}
+				//});
+				c.SwaggerDoc("v1", new OpenApiInfo { Title = "MUMYOl WEB API", Version = "v0.1", Description = "<a target=\"_blank\" href=\"http://ibrahimsakar.xyz\"><h1 class=\"url\">Created by: Ýbrahim Halil SAKAR</h1></a>" });
+				
 			});
 			
 		}
@@ -80,8 +95,10 @@ namespace WebAPI
 			//{
 				app.UseDeveloperExceptionPage();
 				app.UseSwagger();
+			
 				app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "WebAPI v1"));
 			//}
+
 			app.ConfigureCustomExceptionMiddleware();
 
 			//app.UseCors(builder => builder.WithOrigins("http://localhost:3000").AllowAnyHeader());

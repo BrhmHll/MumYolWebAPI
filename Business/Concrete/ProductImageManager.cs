@@ -22,7 +22,7 @@ namespace Business.Concrete
         IProductImageDal _productImageDal;
 		IProductService _productService;
 
-		private string logoPath = "https://cdn.logo.com/hotlink-ok/logo-social.png";
+		private string logoPath = "/logo.png";
 
 		public ProductImageManager(IProductImageDal ProductImageDal, IProductService productService)
         {
@@ -30,66 +30,53 @@ namespace Business.Concrete
 			_productService = productService;
         }
 
-		[SecuredOperation("admin,personel")]
-		public IResult AddImageLink(ProductImage productImage)
+		//[SecuredOperation("admin,personnel")]
+		//public IResult AddImageLink(ProductImage productImage)
+		//{
+		//	var countOfImage = _productImageDal.GetAll(i => i.ProductId == productImage.ProductId).Count();
+		//	if (countOfImage > 4)
+		//	{
+		//		return new ErrorResult("En fazla 4 resim yuklenebilir");
+		//	}
+
+		//	var carIsExists = _productService.GetById(productImage.ProductId);
+		//	if (!carIsExists.Success)
+		//	{
+		//		return new ErrorResult("Urun bulunamadi!");
+		//	}
+		//	productImage.Date = DateTime.Now;
+		//	_productImageDal.Add(productImage);
+		//	return new SuccessResult(Messages.Success);
+		//}
+
+		//[SecuredOperation("admin,personnel")]
+		//public IResult UpdateImageLink(ProductImage productImage)
+		//{
+		//	var isImage = _productImageDal.Get(c => c.Id == productImage.Id);
+		//	if (isImage == null)
+		//	{
+		//		return new ErrorResult("Resim bulunamadi!");
+		//	}
+
+		//	isImage.Date = DateTime.Now;
+		//	isImage.ImagePath = productImage.ImagePath;
+		//	_productImageDal.Update(productImage);
+		//	return new SuccessResult(Messages.Success);
+		//}
+
+		[SecuredOperation("admin,personnel")]
+		public IResult AddImage(IFormFile file, int productId)
 		{
-			var countOfImage = _productImageDal.GetAll(i => i.ProductId == productImage.ProductId).Count();
+			var countOfImage = _productImageDal.GetAll(i => i.ProductId == productId).Count();
 			if (countOfImage > 4)
 			{
 				return new ErrorResult("En fazla 4 resim yuklenebilir");
 			}
 
-			var carIsExists = _productService.GetById(productImage.ProductId);
+			var carIsExists = _productService.GetById(productId);
 			if (!carIsExists.Success)
 			{
 				return new ErrorResult("Urun bulunamadi!");
-			}
-			productImage.Date = DateTime.Now;
-			_productImageDal.Add(productImage);
-			return new SuccessResult(Messages.Success);
-		}
-
-		[SecuredOperation("admin,personel")]
-		public IResult UpdateImageLink(ProductImage productImage)
-		{
-			var isImage = _productImageDal.Get(c => c.Id == productImage.Id);
-			if (isImage == null)
-			{
-				return new ErrorResult("Resim bulunamadi!");
-			}
-
-			isImage.Date = DateTime.Now;
-			isImage.ImagePath = productImage.ImagePath;
-			_productImageDal.Update(productImage);
-			return new SuccessResult(Messages.Success);
-		}
-
-		[SecuredOperation("admin,personel")]
-		public IResult DeleteImageLink(ProductImage productImage)
-		{
-			var image = _productImageDal.Get(c => c.Id == productImage.Id);
-			if (image == null)
-			{
-				return new ErrorResult("Resim bulunamadi!");
-			}
-
-			_productImageDal.Delete(productImage);
-			return new SuccessResult(Messages.Success);
-		}
-
-		[SecuredOperation("admin,personel")]
-		public IResult AddImage(IFormFile file, ProductImage productImage)
-		{
-			var countOfImage = _productImageDal.GetAll(i => i.ProductId == productImage.ProductId).Count();
-			if (countOfImage > 4)
-			{
-				return new ErrorResult("En fazla 4 resim yuklenebilir");
-			}
-
-			var carIsExists = _productService.GetById(productImage.ProductId);
-			if (!carIsExists.Success)
-			{
-				return new ErrorResult("Urun buluanamadi!");
 			}
 
 			var imageResult = FileHelper.Upload(file);
@@ -97,27 +84,29 @@ namespace Business.Concrete
 			{
 				return new ErrorResult(imageResult.Message);
 			}
+			ProductImage productImage = new ProductImage();
 
+			productImage.ProductId = productId;
 			productImage.ImagePath = imageResult.Message;
 			productImage.Date = DateTime.Now;
 			productImage.Id = default;
 			_productImageDal.Add(productImage);
 			return new SuccessResult(Messages.Success);
 		}
-		[SecuredOperation("admin,personel")]
-		public IResult DeleteImage(ProductImage productImage)
+		[SecuredOperation("admin,personnel")]
+		public IResult DeleteImageById(int id)
 		{
-			var image = _productImageDal.Get(c => c.Id == productImage.Id);
+			var image = _productImageDal.Get(c => c.Id == id);
 			if (image == null)
 			{
 				return new ErrorResult("Hatali deger!");
 			}
 
 			FileHelper.Delete(image.ImagePath);
-			_productImageDal.Delete(productImage);
+			_productImageDal.Delete(image);
 			return new SuccessResult(Messages.Success);
 		}
-		[SecuredOperation("admin,personel")]
+
 		public IDataResult<ProductImage> Get(int id)
 		{
 			var image = _productImageDal.Get(i => i.Id == id);
@@ -127,19 +116,19 @@ namespace Business.Concrete
 			}
 			return new SuccessDataResult<ProductImage>();
 		}
-		[SecuredOperation("admin,personel")]
-		public IDataResult<List<ProductImage>> GetAllImagesByProductId(int carId)
+
+		public IDataResult<List<ProductImage>> GetAllImagesByProductId(int productId)
 		{
-			var images = _productImageDal.GetAll(i => i.ProductId == carId);
+			var images = _productImageDal.GetAll(i => i.ProductId == productId);
 			if (images.Count == 0)
 			{
-				var carIsExists = _productService.GetById(carId);
+				var carIsExists = _productService.GetById(productId);
 				if (!carIsExists.Success)
 				{
 					return new ErrorDataResult<List<ProductImage>>("Hatali deger!");
 				}
 				ProductImage productImage = new ProductImage();
-				productImage.ProductId = carId;
+				productImage.ProductId = productId;
 				productImage.Date = DateTime.Now;
 				productImage.ImagePath = logoPath;
 				return new SuccessDataResult<List<ProductImage>>(new List<ProductImage> { productImage });
@@ -147,7 +136,7 @@ namespace Business.Concrete
 			return new SuccessDataResult<List<ProductImage>>(images);
 
 		}
-		[SecuredOperation("admin,personel")]
+		
 		public IDataResult<ProductImage> GetImageByProductId(int carId)
 		{
 			var result = GetAllImagesByProductId(carId);
@@ -158,7 +147,7 @@ namespace Business.Concrete
 			return new SuccessDataResult<ProductImage>(result.Data[0]);
 		}
 
-		[SecuredOperation("admin,personel")]
+		[SecuredOperation("admin,personnel")]
 		public IResult UpdateImage(IFormFile file, ProductImage productImage)
 		{
 			var isImage = _productImageDal.Get(c => c.Id == productImage.Id);
@@ -180,5 +169,14 @@ namespace Business.Concrete
 			return new SuccessResult(Messages.Success);
 		}
 
-	}
+        public IResult DeleteAllImagesByProductId(int productId)
+        {
+			var images = _productImageDal.GetAll(i => i.ProductId == productId);
+			foreach (var image in images)
+            {
+				DeleteImageById(image.Id);
+            }
+			return new SuccessResult("Ürün resimleri başarıyla silindi!");
+        }
+    }
 }

@@ -82,7 +82,42 @@ namespace Business.Concrete
 			return new SuccessDataResult<Product>(_productDal.Get(p => p.Id == productId));
 		}
 
-		[SecuredOperation("personnel,admin")]
+        public IDataResult<List<Product>> SearchAll(string searchKey)
+        {
+			var foundedProducts = new List<Product>();
+            var keys = searchKey.Split(' ');
+
+			foundedProducts.AddRange(_productDal.GetAll(p => p.Name.Contains(searchKey)));
+
+			foreach (var key in keys)
+			{
+				foundedProducts.AddRange(_productDal.GetAll(p => p.Name.StartsWith(key)));
+			}
+
+			foreach (var key in keys)
+            {
+				foundedProducts.AddRange(_productDal.GetAll(p => p.Name.Contains(key)));
+			}
+
+			foreach (var key in keys)
+			{
+				foundedProducts.AddRange(_productDal.GetAll(p => p.Brand.Contains(key)));
+			}
+
+            if (foundedProducts.Count < 3)
+            {
+				foreach (var key in keys)
+				{
+					foundedProducts.AddRange(_productDal.GetAll(p => p.Description.Contains(key)));
+				}
+			}
+
+			foundedProducts = foundedProducts.GroupBy(p => p.Id).Select(p => p.First()).ToList();
+
+			return new SuccessDataResult<List<Product>>(foundedProducts);
+        }
+
+        [SecuredOperation("personnel,admin")]
 		[CacheRemoveAspect("IProductService.Get")]
 		public IResult SetActive(ProductActiveDto productActive)
         {
