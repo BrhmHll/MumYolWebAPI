@@ -20,8 +20,8 @@ namespace DataAccess.Concrete.EntityFramework
 			using (var context = new MumYolContext())
 			{
 				var result = from b in context.BasketItems
-							 join p in context.Products
-							 on b.ProductId equals p.Id
+							 join p in context.Products on b.ProductId equals p.Id
+							 join i in context.ProductImages on b.ProductId equals i.ProductId
 							 where b.UserId == userId
 							 select new BasketDetailsDto
 							 {
@@ -35,6 +35,9 @@ namespace DataAccess.Concrete.EntityFramework
 								RetailPrice = p.RetailPrice,
 								Unit = p.Unit,
 								WholesalePrice = p.WholesalePrice,
+								ImagePath = i.ImagePath,
+								Id = b.Id,
+								ProductId = b.ProductId
 							 };
 				return result.ToList();
 			}

@@ -42,7 +42,7 @@ namespace Business.Concrete
 		public IResult Add(Product product)
 		{
 			IResult result = BusinessRules.Run(
-				//CheckIfProductCountOfCategoryCount(product.CategoryId),
+				CheckIfCategoryExists(product.CategoryId),
 				CheckIfProductNameExists(product.Name));
 			if (result != null)
 				return result;
@@ -63,9 +63,9 @@ namespace Business.Concrete
 
 		[SecuredOperation("user,personnel,admin")]
 		[CacheAspect]
-		public IDataResult<List<Product>> GetAllByCategoryId(int id)
+		public IDataResult<List<Product>> GetAllByCategoryId(int categoryId)
 		{
-			return new SuccessDataResult<List<Product>>(_productDal.GetAll(p => p.CategoryId == id && p.IsActive.Equals(true)));
+			return new SuccessDataResult<List<Product>>(_productDal.GetAll(p => p.CategoryId == categoryId && p.IsActive.Equals(true)));
 		}
 
 		[SecuredOperation("user,personnel,admin")]
@@ -74,47 +74,72 @@ namespace Business.Concrete
 			return new SuccessDataResult<List<Product>> (_productDal.GetAll(p => p.RetailPrice >= min && p.RetailPrice <= max && p.IsActive.Equals(true)));
 		}
 
-		[CacheAspect]
-		//[PerformanceAspect(3)]
 		[SecuredOperation("user,personnel,admin")]
-		public IDataResult<Product> GetById(int productId)
+		[CacheAspect]
+		public IDataResult<List<ProductDetailDto>> GetAllProductDetailsByCategoryId(int categoryId)
+        {
+			var productDetailDtos = _productDal.GetAllProductDetails(categoryId);
+
+            foreach (var item in productDetailDtos)
+                if (item.ImagePaths.Count == 0)
+					item.ImagePaths.Add(ConstantValues.logoPath);
+
+			return new SuccessDataResult<List<ProductDetailDto>>(productDetailDtos);
+        }
+
+        [CacheAspect]
+		[SecuredOperation("user,personnel,admin")]
+		public IDataResult<ProductDetailDto> GetById(int productId)
 		{
-			return new SuccessDataResult<Product>(_productDal.Get(p => p.Id == productId));
+			return new SuccessDataResult<ProductDetailDto>(_productDal.GetProductDetails(productId));
 		}
 
-        public IDataResult<List<Product>> SearchAll(string searchKey)
+		[PerformanceAspect(1)]
+		public IDataResult<List<ProductDetailDto>> SearchAll(string searchKey)
         {
-			var foundedProducts = new List<Product>();
-            var keys = searchKey.Split(' ');
+            if (searchKey == null || searchKey.Length < 3)
+				return new ErrorDataResult<List<ProductDetailDto>>("Arama anahtarı 3 karakter veya daha uzun olmalı!");
+			var allData = GetAllProductDetailsByCategoryId(0);
+			var foundedProducts = new List<ProductDetailDto>();
 
-			foundedProducts.AddRange(_productDal.GetAll(p => p.Name.Contains(searchKey)));
+			foundedProducts.AddRange(allData.Data.Where(p => p.Name.ToLower().Equals(searchKey)));
+			foundedProducts.AddRange(allData.Data.Where(p => p.Brand.ToLower().Equals(searchKey)));
+			
+			if (foundedProducts.Count < ConstantValues.foundedProductCount)
+				foundedProducts.AddRange(allData.Data.Where(p => p.Name.ToLower().StartsWith(searchKey)));
 
-			foreach (var key in keys)
-			{
-				foundedProducts.AddRange(_productDal.GetAll(p => p.Name.StartsWith(key)));
-			}
+			if (foundedProducts.Count < ConstantValues.foundedProductCount)
+				foundedProducts.AddRange(allData.Data.Where(p => p.Name.ToLower().Contains(searchKey)));
 
-			foreach (var key in keys)
-            {
-				foundedProducts.AddRange(_productDal.GetAll(p => p.Name.Contains(key)));
-			}
+			var keys = searchKey.Split(' ');
 
-			foreach (var key in keys)
-			{
-				foundedProducts.AddRange(_productDal.GetAll(p => p.Brand.Contains(key)));
-			}
-
-            if (foundedProducts.Count < 3)
-            {
+			if (foundedProducts.Count < ConstantValues.foundedProductCount)
 				foreach (var key in keys)
-				{
-					foundedProducts.AddRange(_productDal.GetAll(p => p.Description.Contains(key)));
-				}
-			}
+					foundedProducts.AddRange(allData.Data.Where(p => p.Brand.ToLower().Equals(key)));
+
+			if (foundedProducts.Count < ConstantValues.foundedProductCount)
+				foreach (var key in keys)
+					foundedProducts.AddRange(allData.Data.Where(p => p.Brand.ToLower().Contains(key)));
+
+			if (foundedProducts.Count < ConstantValues.foundedProductCount)
+				foreach (var key in keys)
+					foundedProducts.AddRange(allData.Data.Where(p => p.Name.ToLower().Equals(key)));
+
+			if (foundedProducts.Count < ConstantValues.foundedProductCount)
+				foreach (var key in keys)
+					foundedProducts.AddRange(allData.Data.Where(p => p.Name.ToLower().StartsWith(key)));
+
+			if (foundedProducts.Count < ConstantValues.foundedProductCount)
+				foreach (var key in keys)
+					foundedProducts.AddRange(allData.Data.Where(p => p.Name.ToLower().Contains(key)));
+
+			if (foundedProducts.Count < ConstantValues.foundedProductCount)
+				foreach (var key in keys)
+					foundedProducts.AddRange(allData.Data.Where(p => p.Description.ToLower().Contains(key)));
 
 			foundedProducts = foundedProducts.GroupBy(p => p.Id).Select(p => p.First()).ToList();
 
-			return new SuccessDataResult<List<Product>>(foundedProducts);
+			return new SuccessDataResult<List<ProductDetailDto>>(foundedProducts);
         }
 
         [SecuredOperation("personnel,admin")]
@@ -195,5 +220,13 @@ namespace Business.Concrete
 			return new SuccessResult();
 		}
 
+		private IResult CheckIfCategoryExists(int categoryId)
+		{
+			var result = _categoryService.GetById(categoryId);
+			if (!result.Success)
+				return new ErrorResult(Messages.ProductNameAlreadyExists);
+
+			return new SuccessResult();
+		}
 	}
 }

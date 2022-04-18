@@ -12,7 +12,7 @@ namespace Business.Abstract
 {
 	public interface IOrderService
     {
-        IDataResult<OrderDetailsDto> OrderBasket();
+        IDataResult<int> OrderBasket();
         IDataResult<OrderDetailsDto> GetOrderDetailsById(int orderId);
         IDataResult<List<OrderDetailsDto>> GetAllOrdersByStatusId(int statusId);
         IDataResult<List<Order>> GetOrdersByUser();

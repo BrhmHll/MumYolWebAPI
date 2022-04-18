@@ -39,13 +39,13 @@ namespace WebAPI
 
 			services.AddControllers();
 
-			//services.AddCors(options =>
-			//{
-			//	options.AddPolicy("AllowOrigin",
-			//		builder => builder.WithOrigins("http://localhost:3000"));
-			//});
+            services.AddCors(options =>
+            {
+                //options.AddPolicy("AllowOrigin",
+                //    builder => builder.WithOrigins("http://localhost:4200"));
+            });
 
-			services.AddDependencyResolvers(new ICoreModule[] {
+            services.AddDependencyResolvers(new ICoreModule[] {
 				new CoreModule()
 			});
 
@@ -101,7 +101,7 @@ namespace WebAPI
 
 			app.ConfigureCustomExceptionMiddleware();
 
-			//app.UseCors(builder => builder.WithOrigins("http://localhost:3000").AllowAnyHeader());
+			app.UseCors(builder => builder.AllowAnyOrigin());
 
 			app.UseHttpsRedirection();
 

@@ -14,6 +14,6 @@ namespace Entities.DTOs
         public int UserId { get; set; }
         public int OrderStatus { get; set; }
         public DateTime CreatedDate { get; set; }
-        public List<OrderItem> OrderItems { get; set; }
+        public List<OrderItemDetail> OrderItems { get; set; }
     }
 }

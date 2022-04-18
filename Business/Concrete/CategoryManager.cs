@@ -59,7 +59,7 @@ namespace Business.Concrete
 
         public IDataResult<Category> GetById(int categoryId)
         {
-            var cat = _categoryDal.Get(c => c.Equals(categoryId));
+            var cat = _categoryDal.Get(c => c.Id.Equals(categoryId));
             if (cat == null)
                 return new ErrorDataResult<Category>("Kategori bulunamadi!");
             return new SuccessDataResult<Category>(cat);

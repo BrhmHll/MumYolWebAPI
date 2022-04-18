@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace WebAPI.Controllers
@@ -82,6 +83,17 @@ namespace WebAPI.Controllers
 			return BadRequest(result);
 		}
 
+		[HttpGet("getproductdetailsbycategoryid")]
+		public IActionResult GetProductDetailsByCategoryId(int categoryid)
+		{
+			var result = _productService.GetAllProductDetailsByCategoryId(categoryid);
+			if (result.Success)
+			{
+				return Ok(result);
+			}
+			return BadRequest(result);
+		}
+
 		[HttpPost("setactive")]
 		public IActionResult SetActive(ProductActiveDto productActiveDto)
 		{
@@ -94,10 +106,10 @@ namespace WebAPI.Controllers
 		}
 
 
-		[HttpPost("searchall")]
-		public IActionResult SearchAll(string serachKey)
+		[HttpGet("searchall")]
+		public IActionResult SearchAll(string searchKey)
 		{
-			var result = _productService.SearchAll(serachKey);
+			var result = _productService.SearchAll(searchKey);
 			if (result.Success)
 			{
 				return Ok(result);

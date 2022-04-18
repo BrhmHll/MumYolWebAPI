@@ -10,6 +10,8 @@ namespace Entities.DTOs
 {
     public class BasketDetailsDto : IDto
     {
+        public int Id { get; set; }
+        public int ProductId { get; set; }
         public int Quantity { get; set; }
         public int CategoryId { get; set; }
         public string Name { get; set; }
@@ -20,5 +22,6 @@ namespace Entities.DTOs
         public decimal RetailPrice { get; set; }
         public int MinQuantityForWholesale { get; set; }
         public bool IsActive { get; set; }
+        public string ImagePath { get; set; }
     }
 }

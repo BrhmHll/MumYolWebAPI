@@ -47,7 +47,7 @@ namespace Business.Concrete
                 orderDetailsDto.CreatedDate = order.CreatedDate;
                 orderDetailsDto.UserId = order.UserId;
                 orderDetailsDto.OrderStatus = order.OrderStatus;
-                orderDetailsDto.OrderItems = _orderItemDal.GetAll(i => i.OrderId.Equals(order.Id));
+                orderDetailsDto.OrderItems = _orderItemDal.GetAllOrderItemDetails(order.Id);
                 orderDetailsDtos.Add(orderDetailsDto);
             }
             return new SuccessDataResult<List<OrderDetailsDto>>(orderDetailsDtos);
@@ -66,7 +66,7 @@ namespace Business.Concrete
             orderDetailsDto.CreatedDate = order.CreatedDate;
             orderDetailsDto.UserId = order.UserId;
             orderDetailsDto.OrderStatus = order.OrderStatus;
-            orderDetailsDto.OrderItems = _orderItemDal.GetAll(i => i.OrderId.Equals(orderId));
+            orderDetailsDto.OrderItems = _orderItemDal.GetAllOrderItemDetails(orderId);
 
             return new SuccessDataResult<OrderDetailsDto>(orderDetailsDto);
         }
@@ -78,11 +78,11 @@ namespace Business.Concrete
         }
 
         [SecuredOperation("user,personnel,admin")]
-        public IDataResult<OrderDetailsDto> OrderBasket()
+        public IDataResult<int> OrderBasket()
         {
             var basketItems = _basketService.GetAll();
             if (basketItems.Data.Count == 0)
-                return new ErrorDataResult<OrderDetailsDto>("Sepet Bos!");
+                return new ErrorDataResult<int>("Sepet Bos!");
 
             var orderItems = new List<OrderItem>();
             foreach (var item in basketItems.Data)
@@ -90,7 +90,7 @@ namespace Business.Concrete
                 var product = _productService.GetById(item.ProductId);
                 if (!product.Data.IsActive)
                 {
-                    return new ErrorDataResult<OrderDetailsDto>("Sepetinizde satista olmayan urun var!");
+                    return new ErrorDataResult<int>("Sepetinizde satista olmayan urun var!");
                 }
                 var orderItem = new OrderItem()
                 {
@@ -120,25 +120,19 @@ namespace Business.Concrete
 
             _basketService.DeleteAll(); // Clear basket
 
-            var orderDetailsDto = new OrderDetailsDto()
-            {
-                CreatedDate = order.CreatedDate,
-                OrderId = order.Id,
-                OrderItems = orderItems,
-                OrderStatus = order.OrderStatus,
-                UserId = order.UserId
-            };
-
-
-
-            return new SuccessDataResult<OrderDetailsDto>(orderDetailsDto);
+            return new SuccessDataResult<int>(order.Id);
         }
 
         [SecuredOperation("personnel,admin")]
         public IResult UpdateOrderStatus(UpdateOrderStatusDto updateOrderStatusDto)
         {
-            var order = _orderDal.Get(o => o.Id.Equals(updateOrderStatusDto.OrderId) && o.UserId.Equals(_userService.GetUser().Id));
+            var order = _orderDal.Get(o => o.Id.Equals(updateOrderStatusDto.OrderId));
             if(order == null) return new ErrorResult("Siparis bulunamadi!");
+
+            if (!Enum.GetValues(typeof(OrderStatusEnum))
+                            .Cast<int>()
+                            .ToList().Contains(updateOrderStatusDto.StatusId))
+                return new ErrorResult("Hatalı durum seçildi!");
 
             order.OrderStatus = updateOrderStatusDto.StatusId;
             _orderDal.Update(order);

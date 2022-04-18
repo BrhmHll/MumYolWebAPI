@@ -12,11 +12,11 @@ namespace Business.Abstract
 	public interface IProductService
 	{
 		IDataResult<List<Product>> GetAll();
-		IDataResult<List<Product>> SearchAll(string searchKey);
-		IDataResult<List<Product>> GetAllByCategoryId(int id);
+		IDataResult<List<ProductDetailDto>> SearchAll(string searchKey);
+		IDataResult<List<Product>> GetAllByCategoryId(int categoryId);
 		IDataResult<List<Product>> GetAllByUnitPrice(decimal min, decimal max);
-		//IDataResult<List<ProductDetailDto>> GetProductDetails();
-		IDataResult<Product> GetById(int productId);
+		IDataResult<List<ProductDetailDto>> GetAllProductDetailsByCategoryId(int categoryId);
+		IDataResult<ProductDetailDto> GetById(int productId);
 		IResult Add(Product product);
 		IResult Update(Product product);
 		IResult SetActive(ProductActiveDto productActive);
