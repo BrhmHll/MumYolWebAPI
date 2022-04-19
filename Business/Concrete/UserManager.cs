@@ -55,5 +55,15 @@ namespace Business.Concrete
         {
             return _panelUserDal.GetAdmin();
         }
+
+        public User GetUserById(int userId)
+        {
+            return _panelUserDal.Get(u => u.Id == userId);
+        }
+
+        public void Update(User user)
+        {
+            _panelUserDal.Update(user);
+        }
     }
 }

@@ -7,13 +7,12 @@ using System.Threading.Tasks;
 
 namespace Entities.Concrete
 {
-	public class Order : IEntity
+	public class BalanceHistory : IEntity
 	{
 		public int Id { get; set; }
 		public int UserId { get; set; }
-		public DateTime CreatedDate { get; set; }
-		public int OrderStatus { get; set; }
-        public decimal PayBack { get; set; }
-
-    }
+        public decimal Money { get; set; }
+        public decimal BalanceAfter { get; set; }
+        public DateTime Date { get; set; }
+	}
 }

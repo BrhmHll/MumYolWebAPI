@@ -35,6 +35,8 @@ namespace DataAccess.Concrete.EntityFramework
 								 RetailPrice = p.RetailPrice,
 								 StockAmount = p.StockAmount,
 								 Unit = p.Unit,
+								 PayBackRate = p.PayBackRate,
+								 PurchasePrice = p.PurchasePrice,
 								 WholesalePrice = p.WholesalePrice,
 								 CategoryName = c.Name,
 								 ImagePaths = (from pi in context.ProductImages
@@ -64,6 +66,8 @@ namespace DataAccess.Concrete.EntityFramework
 								 RetailPrice = p.RetailPrice,
 								 StockAmount = p.StockAmount,
 								 Unit = p.Unit,
+								 PayBackRate = p.PayBackRate,
+								 PurchasePrice = p.PurchasePrice,
 								 WholesalePrice = p.WholesalePrice,
 								 ImagePaths = (from pi in context.ProductImages
 											   where pi.ProductId == p.Id

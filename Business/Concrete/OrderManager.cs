@@ -25,13 +25,15 @@ namespace Business.Concrete
         IUserService _userService;
         IBasketService _basketService;
         IProductService _productService;
-        public OrderManager(IOrderDal orderDal, IUserService userService, IOrderItemDal orderItemDal, IBasketService basketService, IProductService productService)
+        IBalanceHistoryService _balanceHistoryService;
+        public OrderManager(IOrderDal orderDal, IUserService userService, IOrderItemDal orderItemDal, IBasketService basketService, IProductService productService, IBalanceHistoryService balanceHistoryService)
         {
             _orderDal = orderDal;
             _userService = userService;
             _orderItemDal = orderItemDal;
             _basketService = basketService;
             _productService = productService;
+            _balanceHistoryService = balanceHistoryService;
         }
 
         public IDataResult<List<OrderDetailsDto>> GetAllOrdersByStatusId(int statusId)
@@ -39,7 +41,7 @@ namespace Business.Concrete
             var orderDetailsDtos = new List<OrderDetailsDto>();
             var orderDetailsDto = new OrderDetailsDto();
 
-            var orders = _orderDal.GetAll(o => o.OrderStatus.Equals(statusId));
+            var orders = _orderDal.GetAll(o => statusId == 0 ? o.OrderStatus.Equals(statusId) : true);
 
             foreach (var order in orders)
             {
@@ -47,6 +49,7 @@ namespace Business.Concrete
                 orderDetailsDto.CreatedDate = order.CreatedDate;
                 orderDetailsDto.UserId = order.UserId;
                 orderDetailsDto.OrderStatus = order.OrderStatus;
+                orderDetailsDto.PayBack = order.PayBack;
                 orderDetailsDto.OrderItems = _orderItemDal.GetAllOrderItemDetails(order.Id);
                 orderDetailsDtos.Add(orderDetailsDto);
             }
@@ -66,6 +69,7 @@ namespace Business.Concrete
             orderDetailsDto.CreatedDate = order.CreatedDate;
             orderDetailsDto.UserId = order.UserId;
             orderDetailsDto.OrderStatus = order.OrderStatus;
+            orderDetailsDto.PayBack = order.PayBack;
             orderDetailsDto.OrderItems = _orderItemDal.GetAllOrderItemDetails(orderId);
 
             return new SuccessDataResult<OrderDetailsDto>(orderDetailsDto);
@@ -80,6 +84,7 @@ namespace Business.Concrete
         [SecuredOperation("user,personnel,admin")]
         public IDataResult<int> OrderBasket()
         {
+            Decimal totalPrice = 0;
             var basketItems = _basketService.GetAll();
             if (basketItems.Data.Count == 0)
                 return new ErrorDataResult<int>("Sepet Bos!");
@@ -94,11 +99,14 @@ namespace Business.Concrete
                 }
                 var orderItem = new OrderItem()
                 {
-                    OrderId = 1,
+                    OrderId = 0,
                     ProductId = item.ProductId,
                     Quantity = item.Quantity,
-                    Price = item.Quantity > product.Data.MinQuantityForWholesale ? product.Data.WholesalePrice : product.Data.RetailPrice
+                    Price = item.Quantity > product.Data.MinQuantityForWholesale ? product.Data.WholesalePrice : product.Data.RetailPrice,
+                    PayBackRate = product.Data.PayBackRate,
+                    PurchasePrice = product.Data.PurchasePrice,
                 };
+                totalPrice += orderItem.Quantity * orderItem.Price;
                 orderItems.Add(orderItem);
             }
 
@@ -107,6 +115,7 @@ namespace Business.Concrete
             order.UserId = user.Id;
             order.CreatedDate = DateTime.Now;
             order.OrderStatus = (int)OrderStatusEnum.Waiting;
+            order.PayBack = 0;
             _orderDal.Add(order);
 
             foreach (var item in orderItems)
@@ -115,7 +124,7 @@ namespace Business.Concrete
                 _orderItemDal.Add(item);
             }
             var admin = _userService.GetAdmin();
-            var msg = string.Format(Messages.NewOrderMessage, admin.FirstName + " " + admin.LastName, user.FirstName + " " + user.LastName);
+            var msg = string.Format(Messages.NewOrderMessage, admin.FirstName + " " + admin.LastName, DateTime.Now.ToString("dd/MM/yyyy HH:mm"), user.FirstName + " " + user.LastName);
             SmsIntegration.SendSms(admin.PhoneNumber, msg);
 
             _basketService.DeleteAll(); // Clear basket
@@ -133,6 +142,36 @@ namespace Business.Concrete
                             .Cast<int>()
                             .ToList().Contains(updateOrderStatusDto.StatusId))
                 return new ErrorResult("Hatalı durum seçildi!");
+
+            if (order.OrderStatus == (int)OrderStatusEnum.Completed)
+                return new ErrorResult("Siparis zaten tamamlanmis!");
+
+            if (order.OrderStatus == (int)OrderStatusEnum.Approved && updateOrderStatusDto.StatusId == (int)OrderStatusEnum.Waiting)
+                return new ErrorResult("Siparis zaten onaylanmis! Bu islem yapilamaz");
+
+            if (updateOrderStatusDto.StatusId == (int)OrderStatusEnum.Completed)
+            {
+                var user = _userService.GetUserById(order.UserId);
+                if (user == null)
+                    return new ErrorResult("Kullanici bulunamadi!");
+                decimal payBack = 0;
+                var orderItems = _orderItemDal.GetAll(oi => oi.OrderId == order.Id);
+                foreach (var item in orderItems)
+                {
+                    payBack += (item.Price - item.PurchasePrice) * (item.PayBackRate / 100);
+                }
+                var balanceHistory = new BalanceHistory
+                {
+                    Money = payBack,
+                    BalanceAfter = user.Balance + payBack,
+                    Date = DateTime.Now,
+                    UserId = order.UserId,
+                };
+                order.PayBack = payBack;
+                _balanceHistoryService.Add(balanceHistory);
+                user.Balance += payBack;
+                _userService.Update(user);
+            }
 
             order.OrderStatus = updateOrderStatusDto.StatusId;
             _orderDal.Update(order);

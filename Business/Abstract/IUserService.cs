@@ -11,9 +11,11 @@ namespace Business.Abstract
     {
         List<OperationClaim> GetClaims(User panelUser);
         void Add(User panelUser);
+        void Update(User user);
         User GetByMail(string email);
         User GetByPhoneNumber(string phoneNumber);
         User GetUser();
+        User GetUserById(int userId);
         User GetAdmin();
     }
 }

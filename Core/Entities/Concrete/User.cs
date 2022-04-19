@@ -20,6 +20,7 @@ namespace Core.Entities.Concrete
 		public bool PhoneNumberVerificated { get; set; }
 		public string VerificationCode { get; set; }
 		public DateTime CreatedDate { get; set; }
+        public decimal Balance { get; set; }
 
-	}
+    }
 }

@@ -15,10 +15,12 @@ namespace Entities.Concrete
 		public string Brand { get; set; }
 		public string Description { get; set; }
 		public string Unit { get; set; }
+        public decimal PurchasePrice { get; set; }
         public decimal WholesalePrice { get; set; }
         public decimal RetailPrice { get; set; }
 		public int MinQuantityForWholesale { get; set; }
-		public int StockAmount { get; set; }
+        public int PayBackRate { get; set; }
+        public int StockAmount { get; set; }
 		public bool IsActive { get; set; }
 	}
 }

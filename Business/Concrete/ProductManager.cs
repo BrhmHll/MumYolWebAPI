@@ -171,33 +171,33 @@ namespace Business.Concrete
 
 		private IResult CheckCategory(int categoryId)
         {
-			var cat = _categoryService.GetById(categoryId).Data;
-			var products = GetAllByCategoryId(categoryId);
-			if (products.Data.Count == 0)
-            {
-				cat.TopCategoryId = 0;
-				_categoryService.Update(cat);
-				return new SuccessResult();
-            }
+			//var cat = _categoryService.GetById(categoryId).Data;
+			//var products = GetAllByCategoryId(categoryId);
+			//if (products.Data.Count == 0)
+   //         {
+			//	cat.TopCategoryId = 0;
+			//	_categoryService.Update(cat);
+			//	return new SuccessResult();
+   //         }
 
-			var wholesaleCount = 0;
-			var retailCount = 0;
-            foreach (var item in products.Data)
-            {
-                if (item.RetailPrice != 0)
-					retailCount += 1;
-				if (item.WholesalePrice != 0)							  
-					wholesaleCount += 1;
-			}
+			//var wholesaleCount = 0;
+			//var retailCount = 0;
+   //         foreach (var item in products.Data)
+   //         {
+   //             if (item.RetailPrice != 0)
+			//		retailCount += 1;
+			//	if (item.WholesalePrice != 0)							  
+			//		wholesaleCount += 1;
+			//}
 			
-			if (retailCount > 0 && wholesaleCount > 0)
-				cat.TopCategoryId = 3;
-			else if(retailCount > 0)
-				cat.TopCategoryId = 2;
-			else
-				cat.TopCategoryId = 1;
+			//if (retailCount > 0 && wholesaleCount > 0)
+			//	cat.TopCategoryId = 3;
+			//else if(retailCount > 0)
+			//	cat.TopCategoryId = 2;
+			//else
+			//	cat.TopCategoryId = 1;
 
-			_categoryService.Update(cat);
+			//_categoryService.Update(cat);
 
 			return new SuccessResult();
 		}

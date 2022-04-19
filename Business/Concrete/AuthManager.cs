@@ -32,12 +32,12 @@ namespace Business.Concrete
         public IDataResult<User> Register(UserForRegisterDto panelUserForRegisterDto)
         {
             //For test its closed
-            //var key = string.Format(Messages.VerificationCodeWithPhoneKey, panelUserForRegisterDto.PhoneNumber);
-            //var verificationCode = _cacheManager.Get(key).ToString();
-            //if (verificationCode == null)
-            //    return new ErrorDataResult<User>("Doğrulama kodu bulunamadı veya zaman aşımına uğradı! Lütfen tekrar onay kodu alınız.");
-            //if (panelUserForRegisterDto.VerificationCode != verificationCode)
-            //    return new ErrorDataResult<User>("Hatalı doğrulama kodu! Lütfen tekrar deneyiniz.");
+            var key = string.Format(Messages.VerificationCodeWithPhoneKey, panelUserForRegisterDto.PhoneNumber);
+            var verificationCode = _cacheManager.Get(key).ToString();
+            if (verificationCode == null)
+                return new ErrorDataResult<User>("Doğrulama kodu bulunamadı veya zaman aşımına uğradı! Lütfen tekrar onay kodu alınız.");
+            if (panelUserForRegisterDto.VerificationCode != verificationCode)
+                return new ErrorDataResult<User>("Hatalı doğrulama kodu! Lütfen tekrar deneyiniz.");
             var res = CheckPhone(panelUserForRegisterDto.PhoneNumber, panelUserForRegisterDto.VerificationCode);
             if (!res.Success)
                 return new ErrorDataResult<User>(res.Message);

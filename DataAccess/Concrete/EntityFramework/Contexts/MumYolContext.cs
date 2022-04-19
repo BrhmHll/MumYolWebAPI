@@ -28,6 +28,7 @@ namespace DataAccess.Concrete.EntityFramework.Contexts
 		public DbSet<OrderItem> OrderItems { get; set; }
 		public DbSet<Order> Orders { get; set; }
 		public DbSet<ProductImage> ProductImages { get; set; }
+		public DbSet<BalanceHistory> BalanceHistories { get; set; }
 
 
 

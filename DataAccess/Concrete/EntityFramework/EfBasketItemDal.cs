@@ -21,7 +21,6 @@ namespace DataAccess.Concrete.EntityFramework
 			{
 				var result = from b in context.BasketItems
 							 join p in context.Products on b.ProductId equals p.Id
-							 join i in context.ProductImages on b.ProductId equals i.ProductId
 							 where b.UserId == userId
 							 select new BasketDetailsDto
 							 {
@@ -35,7 +34,7 @@ namespace DataAccess.Concrete.EntityFramework
 								RetailPrice = p.RetailPrice,
 								Unit = p.Unit,
 								WholesalePrice = p.WholesalePrice,
-								ImagePath = i.ImagePath,
+								ImagePath = (from i in context.ProductImages where b.ProductId == i.ProductId select i.ImagePath).FirstOrDefault(),
 								Id = b.Id,
 								ProductId = b.ProductId
 							 };

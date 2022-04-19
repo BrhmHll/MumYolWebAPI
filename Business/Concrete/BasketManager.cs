@@ -96,9 +96,10 @@ namespace Business.Concrete
             if (item == null)
                 return new ErrorResult("Sepetinizdeki urun bulunamadi!");
             if(basketItem.Quantity == 0)
-                _basketItemDal.Delete(basketItem);
+                _basketItemDal.Delete(item);
             else
-                _basketItemDal.Update(basketItem);
+                item.Quantity = basketItem.Quantity;
+                _basketItemDal.Update(item);
             return new SuccessResult("Urun Guncellendi!");
         }
     }

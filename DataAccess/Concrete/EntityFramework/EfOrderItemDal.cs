@@ -30,6 +30,8 @@ namespace DataAccess.Concrete.EntityFramework
 								 ProductId = oi.ProductId,
 								 Quantity = oi.Quantity,
 								 ImagePath = pi.ImagePath,
+								 PayBackRate = oi.PayBackRate,
+								 PurchasePrice = oi.PurchasePrice,
 							 };
 				return result.ToList();
 
