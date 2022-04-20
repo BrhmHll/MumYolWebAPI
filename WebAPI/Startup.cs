@@ -41,8 +41,8 @@ namespace WebAPI
 
             services.AddCors(options =>
             {
-                //options.AddPolicy("AllowOrigin",
-                //    builder => builder.WithOrigins("http://localhost:4200"));
+                options.AddPolicy("AllowOrigin",
+                    builder => builder.WithOrigins("http://localhost:4200"));
             });
 
             services.AddDependencyResolvers(new ICoreModule[] {
@@ -101,7 +101,7 @@ namespace WebAPI
 
 			app.ConfigureCustomExceptionMiddleware();
 
-			app.UseCors(builder => builder.AllowAnyOrigin());
+			app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyHeader());
 
 			app.UseHttpsRedirection();
 

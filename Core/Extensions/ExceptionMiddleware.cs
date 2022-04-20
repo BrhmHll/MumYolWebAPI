@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Core.Utilities.Exceptions;
 using Core.Utilities.Results;
 using FluentValidation;
+using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
 
 namespace Core.Extensions
@@ -39,15 +40,25 @@ namespace Core.Extensions
             string message = e.Message;
             //string message = "Internal Server Error";
 
+            IEnumerable<ValidationFailure> errors;
             if (e.GetType() == typeof(ValidationException))
             {
+                message = e.Message;
+                errors = ((ValidationException)e).Errors;
                 statusCode = (int)HttpStatusCode.Forbidden;
+                //return httpContext.Response.WriteAsync(new ValidationErrorDetails
+                //{
+                //    Message = "Hatalı Veri",
+                //    StatusCode = statusCode,
+                //    Errors = errors
+
+                //}.ToString());
+
             }
             else if (e.GetType() == typeof(AuthorizationDeniedException))
             {
                 statusCode = (int) HttpStatusCode.Unauthorized;
             }
-                
             httpContext.Response.StatusCode = statusCode;
 
             return httpContext.Response.WriteAsync(new ErrorResult(message).ToString());

@@ -19,8 +19,6 @@ namespace DataAccess.Concrete.EntityFramework
 			using (var context = new MumYolContext())
 			{
 				var result = from oi in context.OrderItems
-							 join pi in context.ProductImages
-							 on oi.ProductId equals pi.ProductId
 							 where oi.OrderId == orderId
 							 select new OrderItemDetail
 							 {
@@ -29,7 +27,7 @@ namespace DataAccess.Concrete.EntityFramework
 								 Price = oi.Price,
 								 ProductId = oi.ProductId,
 								 Quantity = oi.Quantity,
-								 ImagePath = pi.ImagePath,
+								 ImagePath = (from i in context.ProductImages where oi.ProductId == i.ProductId select i.ImagePath).FirstOrDefault(),
 								 PayBackRate = oi.PayBackRate,
 								 PurchasePrice = oi.PurchasePrice,
 							 };

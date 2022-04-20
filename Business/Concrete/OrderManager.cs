@@ -36,6 +36,38 @@ namespace Business.Concrete
             _balanceHistoryService = balanceHistoryService;
         }
 
+        [SecuredOperation("personnel,admin")]
+        public IDataResult<List<InsufficientStock>> GetAllInsufficientStocks()
+        {
+            var orders = _orderDal.GetAll(o => o.OrderStatus.Equals((int)OrderStatusEnum.Waiting) || o.OrderStatus.Equals((int)OrderStatusEnum.Approved));
+            var orderItems = new List<OrderItem>();
+            foreach (var order in orders)
+            {
+                orderItems.AddRange(_orderItemDal.GetAll(oi => oi.OrderId.Equals(order.Id)));
+            }
+            orderItems = orderItems.GroupBy(p => p.ProductId).Select(oi => new OrderItem
+            {
+                ProductId = oi.First().ProductId,
+                Quantity = oi.Sum(o => o.Quantity),
+                
+            }).ToList();
+            var insufficientStocks = new List<InsufficientStock>();
+            foreach (var orderItem in orderItems)
+            {
+                var product = _productService.GetById(orderItem.ProductId);
+                if (!product.Success) return new ErrorDataResult<List<InsufficientStock>>(product.Message);
+                var insufficientStock = new InsufficientStock();
+                insufficientStock.ProductId = orderItem.ProductId;
+                insufficientStock.ProductName = product.Data.Name;
+                insufficientStock.RequiredStock = orderItem.Quantity;
+                insufficientStock.StockAmount = product.Data.StockAmount;
+                insufficientStocks.Add(insufficientStock);
+            }
+            insufficientStocks = insufficientStocks.Where(i => i.RequiredStock > i.StockAmount).ToList();
+            return new SuccessDataResult<List<InsufficientStock>>(insufficientStocks);
+        }
+
+        [SecuredOperation("personnel,admin")]
         public IDataResult<List<OrderDetailsDto>> GetAllOrdersByStatusId(int statusId)
         {
             var orderDetailsDtos = new List<OrderDetailsDto>();
@@ -45,6 +77,28 @@ namespace Business.Concrete
 
             foreach (var order in orders)
             {
+                orderDetailsDto.OrderId = order.Id;
+                orderDetailsDto.CreatedDate = order.CreatedDate;
+                orderDetailsDto.UserId = order.UserId;
+                orderDetailsDto.OrderStatus = order.OrderStatus;
+                orderDetailsDto.PayBack = order.PayBack;
+                orderDetailsDto.OrderItems = _orderItemDal.GetAllOrderItemDetails(order.Id);
+                orderDetailsDtos.Add(orderDetailsDto);
+            }
+            return new SuccessDataResult<List<OrderDetailsDto>>(orderDetailsDtos);
+        }
+
+        [SecuredOperation("user,personnel,admin")]
+        public IDataResult<List<OrderDetailsDto>> GetAllOrderDetailsByUser()
+        {
+            var orderDetailsDtos = new List<OrderDetailsDto>();
+            var user = _userService.GetUser();
+            if(user == null) return new ErrorDataResult<List<OrderDetailsDto>>("Kullanici bulunamadi!");
+            var orders = _orderDal.GetAll(o => o.UserId.Equals(user.Id));
+
+            foreach (var order in orders)
+            {
+                var orderDetailsDto = new OrderDetailsDto();
                 orderDetailsDto.OrderId = order.Id;
                 orderDetailsDto.CreatedDate = order.CreatedDate;
                 orderDetailsDto.UserId = order.UserId;

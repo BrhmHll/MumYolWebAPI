@@ -61,6 +61,30 @@ namespace WebAPI.Controllers
 			return BadRequest(result);
 		}
 
+		[HttpGet("getallorderdetailsbyuser")]
+		public IActionResult GetAllOrderDetailsByUser()
+		{
+			//Swagger
+			var result = _orderService.GetAllOrderDetailsByUser();
+			if (result.Success)
+			{
+				return Ok(result);
+			}
+			return BadRequest(result);
+		}
+
+		[HttpGet("getallinsufficientstocks")]
+		public IActionResult GetAllInsufficientStocks()
+		{
+			//Swagger
+			var result = _orderService.GetAllInsufficientStocks();
+			if (result.Success)
+			{
+				return Ok(result);
+			}
+			return BadRequest(result);
+		}
+
 		[HttpPost("updateorderstatus")]
 		public IActionResult UpdateOrderStatus(UpdateOrderStatusDto updateOrderStatusDto)
 		{

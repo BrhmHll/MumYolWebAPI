@@ -39,18 +39,18 @@ namespace Business.Concrete
 		[ValidationAspect(typeof(ProductValidator))]
 		[CacheRemoveAspect("IProductService.Get")]
 		[TransactionScopeAspect]
-		public IResult Add(Product product)
+		public IDataResult<Product> Add(Product product)
 		{
 			IResult result = BusinessRules.Run(
 				CheckIfCategoryExists(product.CategoryId),
 				CheckIfProductNameExists(product.Name));
 			if (result != null)
-				return result;
+				return new ErrorDataResult<Product>(result.Message);
 
 			_productDal.Add(product);
 			CheckCategory(product.CategoryId);
 
-			return new SuccessResult(Messages.ProductAdded);
+			return new SuccessDataResult<Product>(product, Messages.ProductAdded);
 
 		}
 
@@ -89,9 +89,22 @@ namespace Business.Concrete
 
         [CacheAspect]
 		[SecuredOperation("user,personnel,admin")]
-		public IDataResult<ProductDetailDto> GetById(int productId)
+		public IDataResult<ProductDetailDto> GetDetailsById(int productId)
 		{
-			return new SuccessDataResult<ProductDetailDto>(_productDal.GetProductDetails(productId));
+			var productDetails = _productDal.GetProductDetails(productId);
+			if(productDetails == null)
+				return new ErrorDataResult<ProductDetailDto>("Urun bulunamadi");
+			return new SuccessDataResult<ProductDetailDto>(productDetails);
+		}
+
+		[CacheAspect]
+		[SecuredOperation("user,personnel,admin")]
+		public IDataResult<Product> GetById(int productId)
+		{
+			var product = _productDal.Get(p => p.Id.Equals(productId));
+			if (product == null)
+				return new ErrorDataResult<Product>("Urun bulunamadi");
+			return new SuccessDataResult<Product>(product);
 		}
 
 		[PerformanceAspect(1)]
@@ -99,6 +112,7 @@ namespace Business.Concrete
         {
             if (searchKey == null || searchKey.Length < 3)
 				return new ErrorDataResult<List<ProductDetailDto>>("Arama anahtarı 3 karakter veya daha uzun olmalı!");
+			searchKey = searchKey.ToLower();
 			var allData = GetAllProductDetailsByCategoryId(0);
 			var foundedProducts = new List<ProductDetailDto>();
 
