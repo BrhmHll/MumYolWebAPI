@@ -30,6 +30,7 @@ namespace DataAccess.Concrete.EntityFramework
 								 ImagePath = (from i in context.ProductImages where oi.ProductId == i.ProductId select i.ImagePath).FirstOrDefault(),
 								 PayBackRate = oi.PayBackRate,
 								 PurchasePrice = oi.PurchasePrice,
+								 ProductName = (from p in context.Products where oi.ProductId == p.Id select p.Name).FirstOrDefault()
 							 };
 				return result.ToList();
 

@@ -92,7 +92,7 @@ namespace WebAPI.Controllers
 			return Ok(result);
 		}
 
-		[HttpPost("deleteproductimage")]
+		[HttpGet("deleteproductimage")]
 		public IActionResult DeleteProductImage(int imageId)
 		{
 			var result = _productImageService.DeleteImageById(imageId);
@@ -103,7 +103,7 @@ namespace WebAPI.Controllers
 			return Ok(result);
 		}
 
-		[HttpPost("deleteallproductimagesbyproductid")]
+		[HttpGet("deleteallproductimagesbyproductid")]
 		public IActionResult DeleteAllProductImages(int productid)
 		{
 			var result = _productImageService.DeleteAllImagesByProductId(productid);

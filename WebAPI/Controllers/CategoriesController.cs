@@ -35,20 +35,6 @@ namespace WebAPI.Controllers
 			return BadRequest(result);
 		}
 
-		[HttpGet("getallbyiswholesale")]
-		public IActionResult GetAllByIsWholesale(int topCategoryId)
-		{
-			//Swagger
-			var result = _categoryService.GetAllByIsWholesale(topCategoryId);
-			if (result.Success)
-			{
-				return Ok(result);
-			}
-			return BadRequest(result);
-		}
-
-		
-
 		[HttpPost("add")]
 		public IActionResult Add(Category category)
 		{
@@ -60,8 +46,16 @@ namespace WebAPI.Controllers
 			return BadRequest(result);
 		}
 
-		
-
+		[HttpPost("modifyimage")]
+		public IActionResult ModifyImage([FromForm(Name = ("Image"))] IFormFile file, [FromForm] int categoryId)
+        {
+			var result = _categoryService.ModifyImage(file, categoryId);
+			if (result.Success)
+			{
+				return Ok(result);
+			}
+			return BadRequest(result);
+		}
 
 	}
 }

@@ -65,6 +65,7 @@ namespace Business.Concrete
 		//}
 
 		[SecuredOperation("admin,personnel")]
+		[CacheRemoveAspect("IProductService.Get|IProductImageService.Get")]
 		public IResult AddImage(IFormFile file, int productId)
 		{
 			var countOfImage = _productImageDal.GetAll(i => i.ProductId == productId).Count();
@@ -93,7 +94,9 @@ namespace Business.Concrete
 			_productImageDal.Add(productImage);
 			return new SuccessResult(Messages.Success);
 		}
+
 		[SecuredOperation("admin,personnel")]
+		[CacheRemoveAspect("IProductService.Get|IProductImageService.Get")]
 		public IResult DeleteImageById(int id)
 		{
 			var image = _productImageDal.Get(c => c.Id == id);
@@ -107,6 +110,7 @@ namespace Business.Concrete
 			return new SuccessResult(Messages.Success);
 		}
 
+		[CacheAspect]
 		public IDataResult<ProductImage> Get(int id)
 		{
 			var image = _productImageDal.Get(i => i.Id == id);
@@ -117,26 +121,28 @@ namespace Business.Concrete
 			return new SuccessDataResult<ProductImage>();
 		}
 
+		[CacheAspect]
 		public IDataResult<List<ProductImage>> GetAllImagesByProductId(int productId)
 		{
 			var images = _productImageDal.GetAll(i => i.ProductId == productId);
-			if (images.Count == 0)
-			{
-				var carIsExists = _productService.GetById(productId);
-				if (!carIsExists.Success)
-				{
-					return new ErrorDataResult<List<ProductImage>>("Hatali deger!");
-				}
-				ProductImage productImage = new ProductImage();
-				productImage.ProductId = productId;
-				productImage.Date = DateTime.Now;
-				productImage.ImagePath = logoPath;
-				return new SuccessDataResult<List<ProductImage>>(new List<ProductImage> { productImage });
-			}
+			//if (images.Count == 0)
+			//{
+			//	var carIsExists = _productService.GetById(productId);
+			//	if (!carIsExists.Success)
+			//	{
+			//		return new ErrorDataResult<List<ProductImage>>("Hatali deger!");
+			//	}
+			//	ProductImage productImage = new ProductImage();
+			//	productImage.ProductId = productId;
+			//	productImage.Date = DateTime.Now;
+			//	productImage.ImagePath = logoPath;
+			//	return new SuccessDataResult<List<ProductImage>>(new List<ProductImage> { productImage });
+			//}
 			return new SuccessDataResult<List<ProductImage>>(images);
 
 		}
 		
+		[CacheAspect]
 		public IDataResult<ProductImage> GetImageByProductId(int carId)
 		{
 			var result = GetAllImagesByProductId(carId);
@@ -148,6 +154,7 @@ namespace Business.Concrete
 		}
 
 		[SecuredOperation("admin,personnel")]
+		[CacheRemoveAspect("IProductService.Get|IProductImageService.Get")]
 		public IResult UpdateImage(IFormFile file, ProductImage productImage)
 		{
 			var isImage = _productImageDal.Get(c => c.Id == productImage.Id);
@@ -169,7 +176,9 @@ namespace Business.Concrete
 			return new SuccessResult(Messages.Success);
 		}
 
-        public IResult DeleteAllImagesByProductId(int productId)
+		[SecuredOperation("admin,personnel")]
+		[CacheRemoveAspect("IProductService.Get|IProductImageService.Get")]
+		public IResult DeleteAllImagesByProductId(int productId)
         {
 			var images = _productImageDal.GetAll(i => i.ProductId == productId);
 			foreach (var image in images)

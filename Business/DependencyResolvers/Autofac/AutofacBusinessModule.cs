@@ -29,6 +29,7 @@ namespace Business.DependencyResolvers.Autofac
 			builder.RegisterType<BalanceHistoryManager>().As<IBalanceHistoryService>().SingleInstance();
 			builder.RegisterType<OrderManager>().As<IOrderService>().SingleInstance();
 			builder.RegisterType<ProductImageManager>().As<IProductImageService>().SingleInstance();
+			builder.RegisterType<SettingManager>().As<ISettingService>().SingleInstance();
 
 
 
@@ -41,6 +42,7 @@ namespace Business.DependencyResolvers.Autofac
 			builder.RegisterType<EfProductImageDal>().As<IProductImageDal>().SingleInstance();
 			builder.RegisterType<EfUserDal>().As<IUserDal>().SingleInstance();
 			builder.RegisterType<EfBalanceHistoryDal>().As<IBalanceHistoryDal>().SingleInstance();
+			builder.RegisterType<EfSettingDal>().As<ISettingDal>().SingleInstance();
 
 
 

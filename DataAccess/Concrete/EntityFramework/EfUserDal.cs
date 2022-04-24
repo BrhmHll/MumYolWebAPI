@@ -64,5 +64,17 @@ namespace DataAccess.Concrete.EntityFramework
 				return user.FirstOrDefault();
 			}
 		}
+
+		public string GetSetting(string key)
+        {
+			using (var context = new MumYolContext())
+			{
+				var value = from s in context.Settings
+						   where s.Key.Equals(key)
+						   select s.Value;
+						   
+				return value.FirstOrDefault();
+			}
+		}
 	}
 }

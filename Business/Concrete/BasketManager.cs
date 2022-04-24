@@ -23,6 +23,8 @@ namespace Business.Concrete
         IBasketItemDal _basketItemDal;
         IUserService _userService;
         IProductService _productService;
+        private string logoPath = "/logo.png";
+
 
         public BasketManager(IBasketItemDal basketItemDal, IUserService userService, IProductService productService)
         {
@@ -32,6 +34,7 @@ namespace Business.Concrete
         }
 
         [SecuredOperation("user,personnel,admin")]
+        [CacheRemoveAspect("IBasketService.Get")]
         public IResult Add(BasketDto basketDto)
         {
             var user = _userService.GetUser();
@@ -59,6 +62,7 @@ namespace Business.Concrete
         }
 
         [SecuredOperation("user,personnel,admin")]
+        [CacheRemoveAspect("IBasketService.Get")]
         public IResult Delete(int basketItemId)
         {
             var item = _basketItemDal.Get(b => b.Id.Equals(basketItemId));
@@ -69,6 +73,7 @@ namespace Business.Concrete
         }
 
         [SecuredOperation("user,personnel,admin")]
+        [CacheRemoveAspect("IBasketService.Get")]
         public IResult DeleteAll()
         {
             var items = GetAll().Data;
@@ -78,18 +83,29 @@ namespace Business.Concrete
         }
 
         [SecuredOperation("user,personnel,admin")]
+        [CacheAspect]
         public IDataResult<List<BasketItem>> GetAll()
         {
             return new SuccessDataResult<List<BasketItem>>(_basketItemDal.GetAll(b => b.UserId.Equals(_userService.GetUser().Id)));
         }
 
         [SecuredOperation("user,personnel,admin")]
+        [CacheAspect]
         public IDataResult<List<BasketDetailsDto>> GetAllDetails()
         {
-            return new SuccessDataResult<List<BasketDetailsDto>>(_basketItemDal.GetBasketDetails(_userService.GetUser().Id));
+            var data = _basketItemDal.GetBasketDetails(_userService.GetUser().Id);
+            for (int i = 0; i < data.Count; i++)
+            {
+                if (data[i].ImagePath == null)
+                {
+                    data[i].ImagePath = logoPath;
+                }
+            }
+            return new SuccessDataResult<List<BasketDetailsDto>>(data);
         }
 
         [SecuredOperation("user,personnel,admin")]
+        [CacheRemoveAspect("IBasketService.Get")]
         public IResult Update(BasketItem basketItem)
         {
             var item = _basketItemDal.Get(b => b.Id.Equals(basketItem.Id));

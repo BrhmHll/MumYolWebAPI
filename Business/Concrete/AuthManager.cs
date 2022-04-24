@@ -67,17 +67,17 @@ namespace Business.Concrete
         public IDataResult<User> Login(UserForLoginDto panelUserForLoginDto)
         {
             var userToCheck = _panelUserService.GetByPhoneNumber(panelUserForLoginDto.PhoneNumber);
-            if (userToCheck == null)
+            if (!userToCheck.Success)
             {
                 return new ErrorDataResult<User>(Messages.UserNotFound);
             }
 
-            if (!HashingHelper.VerifyPasswordHash(panelUserForLoginDto.Password, userToCheck.PasswordHash, userToCheck.PasswordSalt))
+            if (!HashingHelper.VerifyPasswordHash(panelUserForLoginDto.Password, userToCheck.Data.PasswordHash, userToCheck.Data.PasswordSalt))
             {
                 return new ErrorDataResult<User>(Messages.PasswordError);
             }
 
-            return new SuccessDataResult<User>(userToCheck, Messages.SuccessfulLogin);
+            return new SuccessDataResult<User>(userToCheck.Data, Messages.SuccessfulLogin);
         }
 
         public IResult UserExists(string phoneNumber)

@@ -23,7 +23,6 @@ namespace Business.ValidationRules.FluentValidation
 			RuleFor(p => p.Brand).NotEmpty();
 			RuleFor(p => p.Brand).MinimumLength(2);
 			RuleFor(p => p.StockAmount).NotEmpty();
-			RuleFor(p => p.StockAmount).GreaterThan(-1);
 			RuleFor(p => p.CategoryId).GreaterThan(0);
 
 			//RuleFor(p => p.Name).Must(StartWithA).WithMessage("Ürünler A harfi ile başlamalı (Fake)");

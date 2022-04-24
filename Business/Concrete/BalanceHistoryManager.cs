@@ -17,25 +17,28 @@ namespace Business.Concrete
     public class BalanceHistoryManager : IBalanceHistoryService
     {
         IBalanceHistoryDal _balanceHistoryDal;
-        public BalanceHistoryManager(IBalanceHistoryDal balanceHistoryDal)
+        IUserService _userService;
+
+        public BalanceHistoryManager(IBalanceHistoryDal balanceHistoryDal, IUserService userService)
         {
             _balanceHistoryDal = balanceHistoryDal;
+            _userService = userService;
         }
 
         [SecuredOperation("personnel,admin")]
-        [CacheRemoveAspect("ICategoryService.Get")]
-        public IResult Add(BalanceHistory category)
+        [CacheRemoveAspect("IBalanceHistoryService.Get")]
+        public IResult Add(BalanceHistory balanceHistory)
         {
-            category.Id = 0;
-            _balanceHistoryDal.Add(category);
+            balanceHistory.Id = 0;
+            _balanceHistoryDal.Add(balanceHistory);
             return new SuccessResult("Kategori Eklendi");
         }
 
         [SecuredOperation("personnel,admin")]
-        [CacheRemoveAspect("ICategoryService.Get")]
-        public IResult Update(BalanceHistory category)
+        [CacheRemoveAspect("IBalanceHistoryService.Get")]
+        public IResult Update(BalanceHistory balanceHistory)
         {
-            _balanceHistoryDal.Update(category);
+            _balanceHistoryDal.Update(balanceHistory);
             return new SuccessResult("Kategori Guncellendi");
         }
 
@@ -43,7 +46,7 @@ namespace Business.Concrete
         [SecuredOperation("user,personnel,admin")]
         public IDataResult<List<BalanceHistory>> GetAll()
         {
-            return new SuccessDataResult<List<BalanceHistory>>(_balanceHistoryDal.GetAll());
+            return new SuccessDataResult<List<BalanceHistory>>(_balanceHistoryDal.GetAll(b => b.UserId.Equals(_userService.GetUser().Id)));
         }
 
         [CacheAspect]
@@ -52,7 +55,7 @@ namespace Business.Concrete
         {
             var cat = _balanceHistoryDal.Get(c => c.Id.Equals(balanceHistoryId));
             if (cat == null)
-                return new ErrorDataResult<BalanceHistory>("Kategori bulunamadi!");
+                return new ErrorDataResult<BalanceHistory>("balance id bulunamadi!");
             return new SuccessDataResult<BalanceHistory>(cat);
         }
     }

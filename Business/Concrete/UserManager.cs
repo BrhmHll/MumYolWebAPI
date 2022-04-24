@@ -1,7 +1,14 @@
 ﻿using Business.Abstract;
+using Business.BusinessAspects.Autofac;
+using Business.ValidationRules.FluentValidation;
+using Core.Aspects.Autofac.Caching;
+using Core.Aspects.Autofac.Transaction;
+using Core.Aspects.Autofac.Validation;
 using Core.Entities.Concrete;
 using Core.Utilities.IoC;
+using Core.Utilities.Results;
 using DataAccess.Abstract;
+using Entities.DTOs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -29,22 +36,34 @@ namespace Business.Concrete
             return _panelUserDal.GetClaims(panelUser);
         }
 
-        public void Add(User panelUser)
+        public IResult Add(User panelUser)
         {
             _panelUserDal.Add(panelUser);
             _panelUserDal.AddUserRole(panelUser.Id);
+            return new SuccessResult("Kullanici eklendi");
         }
 
-        public User GetByMail(string email)
+        public IDataResult<User> GetByMail(string email)
         {
-            return _panelUserDal.Get(u => (u.Email == email) && u.Status);
+            var user = _panelUserDal.Get(u => (u.Email == email) && u.Status);
+            if (user == null)
+                return new ErrorDataResult<User>("Bu maile ait kulanici bulunamadi!");
+            return new SuccessDataResult<User>(user);
+
         }
 
-        public User GetByPhoneNumber(string phoneNumber)
+        public IDataResult<User> GetByPhoneNumber(string phoneNumber)
         {
-            return _panelUserDal.Get(u => u.PhoneNumber == phoneNumber && u.Status);
+            var user = _panelUserDal.Get(u => u.PhoneNumber == phoneNumber && u.Status);
+            if (user == null)
+                return new ErrorDataResult<User>("Bu maile ait kulanici bulunamadi!");
+            return new SuccessDataResult<User>(user);
         }
 
+        //[SecuredOperation("personnel,admin")]
+        //[ValidationAspect(typeof(ProductValidator))]
+        //[CacheRemoveAspect("IProductService.Get")]
+        //[TransactionScopeAspect]
         public User GetUser()
         {
             var userId = Convert.ToInt32(_contextAccessor.HttpContext.User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).FirstOrDefault().Value);
@@ -56,14 +75,70 @@ namespace Business.Concrete
             return _panelUserDal.GetAdmin();
         }
 
-        public User GetUserById(int userId)
+        public IDataResult<User> GetUserById(int userId)
         {
-            return _panelUserDal.Get(u => u.Id == userId);
+            var user = _panelUserDal.Get(u => u.Id == userId);
+            if (user == null)
+                return new ErrorDataResult<User>("Bu maile ait kulanici bulunamadi!");
+            return new SuccessDataResult<User>(user);
         }
 
-        public void Update(User user)
+
+        [SecuredOperation("personnel,admin")]
+        public IResult Update(User user)
         {
             _panelUserDal.Update(user);
+            return new SuccessResult("Kullanici guncellendi");
+
+        }
+
+        public IDataResult<UserProfileDto> GetUserProfile()
+        {
+            var user = GetUser();
+            if (user == null) return new ErrorDataResult<UserProfileDto>("Kullanici bulunamadi!");
+            var userProfile = new UserProfileDto()
+            {
+                Address = user.Address,
+                Balance = user.Balance,
+                Email = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                PhoneNumber = user.PhoneNumber,
+            };
+            return new SuccessDataResult<UserProfileDto>(userProfile);
+        }
+
+        public IDataResult<UserProfileDto> UpdateUserProfile(UserForUpdateDto user)
+        {
+            var userOriginal = GetUser();
+            if (userOriginal == null) return new ErrorDataResult<UserProfileDto>("Kullanici bulunamadi!");
+            userOriginal.Address = user.Address;
+            userOriginal.FirstName = user.FirstName;
+            userOriginal.LastName = user.LastName;
+            userOriginal.Email = user.Email;
+            _panelUserDal.Update(userOriginal);
+            return GetUserProfile();
+        }
+
+        public IDataResult<List<UserProfileDto>> GetAllUserProfile()
+        {
+            var users = _panelUserDal.GetAll();
+            var usersProfiles = new List<UserProfileDto>();
+            foreach (var user in users)
+            {
+                usersProfiles.Add(new UserProfileDto()
+                {
+                    Address=user.Address,
+                    Balance=user.Balance,
+                    Email=user.Email,
+                    FirstName=user.FirstName,
+                    LastName=user.LastName,
+                    PhoneNumber=user.PhoneNumber,
+                    Status = user.Status,
+                    Id = user.Id,
+                });
+            }
+            return new SuccessDataResult<List<UserProfileDto>>(usersProfiles);
         }
     }
 }

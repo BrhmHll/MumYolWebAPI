@@ -26,6 +26,9 @@ namespace Business.Concrete
         IBasketService _basketService;
         IProductService _productService;
         IBalanceHistoryService _balanceHistoryService;
+
+        private string logoPath = "/logo.png";
+
         public OrderManager(IOrderDal orderDal, IUserService userService, IOrderItemDal orderItemDal, IBasketService basketService, IProductService productService, IBalanceHistoryService balanceHistoryService)
         {
             _orderDal = orderDal;
@@ -37,6 +40,7 @@ namespace Business.Concrete
         }
 
         [SecuredOperation("personnel,admin")]
+        [CacheAspect]
         public IDataResult<List<InsufficientStock>> GetAllInsufficientStocks()
         {
             var orders = _orderDal.GetAll(o => o.OrderStatus.Equals((int)OrderStatusEnum.Waiting) || o.OrderStatus.Equals((int)OrderStatusEnum.Approved));
@@ -68,27 +72,38 @@ namespace Business.Concrete
         }
 
         [SecuredOperation("personnel,admin")]
+        [CacheAspect]
         public IDataResult<List<OrderDetailsDto>> GetAllOrdersByStatusId(int statusId)
         {
             var orderDetailsDtos = new List<OrderDetailsDto>();
-            var orderDetailsDto = new OrderDetailsDto();
 
-            var orders = _orderDal.GetAll(o => statusId == 0 ? o.OrderStatus.Equals(statusId) : true);
+            var orders = _orderDal.GetAll(o => statusId != 0 ? o.OrderStatus.Equals(statusId) : true);
 
             foreach (var order in orders)
             {
+                var orderDetailsDto = new OrderDetailsDto(); 
                 orderDetailsDto.OrderId = order.Id;
                 orderDetailsDto.CreatedDate = order.CreatedDate;
                 orderDetailsDto.UserId = order.UserId;
                 orderDetailsDto.OrderStatus = order.OrderStatus;
                 orderDetailsDto.PayBack = order.PayBack;
                 orderDetailsDto.OrderItems = _orderItemDal.GetAllOrderItemDetails(order.Id);
+                orderDetailsDto.Address = order.Address;
+                var user = _userService.GetUserById(order.UserId);
+                if (user.Success)
+                {
+                    orderDetailsDto.UserName = user.Data.FirstName;
+                    orderDetailsDto.UserSurname = user.Data.LastName;
+                    orderDetailsDto.UserPhone = user.Data.PhoneNumber;
+                    orderDetailsDto.UserEmail = user.Data.Email;
+                }
                 orderDetailsDtos.Add(orderDetailsDto);
             }
-            return new SuccessDataResult<List<OrderDetailsDto>>(orderDetailsDtos);
+            return new SuccessDataResult<List<OrderDetailsDto>>(orderDetailsDtos.OrderByDescending(o => o.CreatedDate).ToList());
         }
 
         [SecuredOperation("user,personnel,admin")]
+        [CacheAspect]
         public IDataResult<List<OrderDetailsDto>> GetAllOrderDetailsByUser()
         {
             var orderDetailsDtos = new List<OrderDetailsDto>();
@@ -104,13 +119,20 @@ namespace Business.Concrete
                 orderDetailsDto.UserId = order.UserId;
                 orderDetailsDto.OrderStatus = order.OrderStatus;
                 orderDetailsDto.PayBack = order.PayBack;
-                orderDetailsDto.OrderItems = _orderItemDal.GetAllOrderItemDetails(order.Id);
+                var items = _orderItemDal.GetAllOrderItemDetails(order.Id);
+                for(int i = 0; i < items.Count; i++)
+                {
+                    if(items[i].ImagePath == null) items[i].ImagePath = logoPath;
+                }
+                orderDetailsDto.OrderItems = items;
+                orderDetailsDto.Address = order.Address;
                 orderDetailsDtos.Add(orderDetailsDto);
             }
-            return new SuccessDataResult<List<OrderDetailsDto>>(orderDetailsDtos);
+            return new SuccessDataResult<List<OrderDetailsDto>>(orderDetailsDtos.OrderByDescending(o => o.CreatedDate).ToList());
         }
 
         [SecuredOperation("user,personnel,admin")]
+        [CacheAspect]
         public IDataResult<OrderDetailsDto> GetOrderDetailsById(int orderId)
         {
             var order = _orderDal.Get(o => o.Id.Equals(orderId) && o.UserId.Equals(_userService.GetUser().Id));
@@ -124,21 +146,25 @@ namespace Business.Concrete
             orderDetailsDto.UserId = order.UserId;
             orderDetailsDto.OrderStatus = order.OrderStatus;
             orderDetailsDto.PayBack = order.PayBack;
+            orderDetailsDto.Address = order.Address;
             orderDetailsDto.OrderItems = _orderItemDal.GetAllOrderItemDetails(orderId);
 
             return new SuccessDataResult<OrderDetailsDto>(orderDetailsDto);
         }
 
         [SecuredOperation("user,personnel,admin")]
+        [CacheAspect]
         public IDataResult<List<Order>> GetOrdersByUser()
         {
             return new SuccessDataResult<List<Order>>(_orderDal.GetAll(o => o.UserId.Equals(_userService.GetUser().Id)));
         }
 
         [SecuredOperation("user,personnel,admin")]
+        [CacheRemoveAspect("IOrderService.Get")]
         public IDataResult<int> OrderBasket()
         {
             Decimal totalPrice = 0;
+            Decimal paybackTotal = 0;
             var basketItems = _basketService.GetAll();
             if (basketItems.Data.Count == 0)
                 return new ErrorDataResult<int>("Sepet Bos!");
@@ -161,7 +187,12 @@ namespace Business.Concrete
                     PurchasePrice = product.Data.PurchasePrice,
                 };
                 totalPrice += orderItem.Quantity * orderItem.Price;
+                paybackTotal += (orderItem.Quantity * (orderItem.Price - product.Data.PurchasePrice)) * ((decimal)product.Data.PayBackRate / 100);
                 orderItems.Add(orderItem);
+            }
+            if (totalPrice < 1000)
+            {
+                return new ErrorDataResult<int>("Toplam tutar en az 1000 tl olmalidir!");
             }
 
             var user =_userService.GetUser();
@@ -169,7 +200,8 @@ namespace Business.Concrete
             order.UserId = user.Id;
             order.CreatedDate = DateTime.Now;
             order.OrderStatus = (int)OrderStatusEnum.Waiting;
-            order.PayBack = 0;
+            order.PayBack = paybackTotal;
+            order.Address = user.Address;
             _orderDal.Add(order);
 
             foreach (var item in orderItems)
@@ -187,6 +219,7 @@ namespace Business.Concrete
         }
 
         [SecuredOperation("personnel,admin")]
+        [CacheRemoveAspect("IOrderService.Get")]
         public IResult UpdateOrderStatus(UpdateOrderStatusDto updateOrderStatusDto)
         {
             var order = _orderDal.Get(o => o.Id.Equals(updateOrderStatusDto.OrderId));
@@ -205,14 +238,29 @@ namespace Business.Concrete
 
             if (updateOrderStatusDto.StatusId == (int)OrderStatusEnum.Completed)
             {
-                var user = _userService.GetUserById(order.UserId);
-                if (user == null)
+                var productsForUpdate = new List<Product>();
+                var userRes = _userService.GetUserById(order.UserId);
+                if (!userRes.Success)
                     return new ErrorResult("Kullanici bulunamadi!");
+                var user = userRes.Data;
                 decimal payBack = 0;
                 var orderItems = _orderItemDal.GetAll(oi => oi.OrderId == order.Id);
                 foreach (var item in orderItems)
                 {
-                    payBack += (item.Price - item.PurchasePrice) * (item.PayBackRate / 100);
+                    payBack += ((item.Price - item.PurchasePrice) * ((decimal)item.PayBackRate / (decimal)100)) * (decimal)item.Quantity;
+                    //Console.WriteLine($"(({item.Price} - {item.PurchasePrice}) * ({item.PayBackRate} / 100)) * {item.Quantity}" + (((item.Price - item.PurchasePrice) * (item.PayBackRate / 100)) * item.Quantity).ToString());
+                    var product = _productService.GetById(item.ProductId);
+                    if (product.Success)
+                    {
+                        product.Data.StockAmount -= item.Quantity;
+                        productsForUpdate.Add(product.Data);
+                    }
+                    else
+                        return new ErrorResult(product.Message);
+                }
+                foreach (var product in productsForUpdate)
+                {
+                    _productService.Update(product);
                 }
                 var balanceHistory = new BalanceHistory
                 {
@@ -223,6 +271,7 @@ namespace Business.Concrete
                 };
                 order.PayBack = payBack;
                 _balanceHistoryService.Add(balanceHistory);
+                Console.WriteLine("Payback:" +  payBack.ToString());
                 user.Balance += payBack;
                 _userService.Update(user);
             }

@@ -77,7 +77,7 @@ namespace Core.Utilities.Helper
         private static IResult CheckFileTypeValid(string type)
         {
             type = type.ToLower();
-            if (type != ".jpeg" && type != ".png" && type != ".jpg")
+            if (type != ".jpeg" && type != ".png" && type != ".jpg" && type != ".webp" && type != ".gif")
             {
                 return new ErrorResult("Wrong file type.");
             }

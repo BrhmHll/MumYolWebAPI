@@ -17,5 +17,6 @@ namespace Entities.Concrete
 		public decimal PurchasePrice { get; set; }
 		public int PayBackRate { get; set; }
 		public string ImagePath { get; set; }
+        public string ProductName { get; set; }
     }
 }

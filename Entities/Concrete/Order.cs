@@ -14,6 +14,7 @@ namespace Entities.Concrete
 		public DateTime CreatedDate { get; set; }
 		public int OrderStatus { get; set; }
         public decimal PayBack { get; set; }
+        public string Address { get; set; }
 
-    }
+	}
 }
