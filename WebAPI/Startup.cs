@@ -4,6 +4,7 @@ using Core.Utilities.IoC;
 using Core.Utilities.Security.Encryption;
 using Core.Utilities.Security.JWT;
 using DataAccess.Concrete.EntityFramework.Contexts;
+using Entities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -15,6 +16,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System;
@@ -33,21 +35,21 @@ namespace WebAPI
 
 		public IConfiguration Configuration { get; }
 
+
 		// This method gets called by the runtime. Use this method to add services to the container.
 		public void ConfigureServices(IServiceCollection services)
 		{
 
 			services.AddControllers();
 
-            services.AddCors(options =>
-            {
-                options.AddPolicy("AllowOrigin",
-                    builder => builder.WithOrigins("http://localhost:4200"));
-            });
 
-            services.AddDependencyResolvers(new ICoreModule[] {
+			services.AddDependencyResolvers(new ICoreModule[] {
 				new CoreModule()
 			});
+
+			//services.Configure<AppSettings>(Configuration);
+
+			//services.AddDbContext<MumYolContext>(item => item.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
 			var tokenOptions = Configuration.GetSection("TokenOptions").Get<TokenOptions>();
 
@@ -68,44 +70,38 @@ namespace WebAPI
 
 			services.AddSwaggerGen(c =>
 			{
-				//c.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, new OpenApiSecurityScheme
-				//{
-
-				//	BearerFormat = JwtBearerDefaults.AuthenticationScheme,
-				//	Name = "Authorization",
-				//	In = ParameterLocation.Header,
-				//	Type = SecuritySchemeType.Http,
-				//	Scheme = JwtBearerDefaults.AuthenticationScheme,
-				//	//Reference = new OpenApiReference
-				//	//{
-				//	//	Id = JwtBearerDefaults.AuthenticationScheme,
-				//	//	Type = ReferenceType.Header
-				//	//}
-				//});
 				c.SwaggerDoc("v1", new OpenApiInfo { Title = "MUMYOl WEB API", Version = "v0.1", Description = "<a target=\"_blank\" href=\"http://ibrahimsakar.xyz\"><h1 class=\"url\">Created by: Ýbrahim Halil SAKAR</h1></a>" });
 				
 			});
-			
+			services.AddCors();
+
+
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
 		public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 		{
-			//if (env.IsDevelopment())
-			//{
-				app.UseDeveloperExceptionPage();
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
 				app.UseSwagger();
 			
 				app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "WebAPI v1"));
-			//}
+			}
+
 
 			app.ConfigureCustomExceptionMiddleware();
 
-			app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyHeader());
-
 			app.UseHttpsRedirection();
 
+			app.UseStaticFiles();
+
 			app.UseRouting();
+
+			app.UseCors(builder => builder
+					.WithOrigins(new[] { "http://localhost:4200", "https://admin.momandltd.com" })
+					.AllowAnyHeader()
+					.AllowAnyOrigin());
 
 			app.UseAuthentication();
 

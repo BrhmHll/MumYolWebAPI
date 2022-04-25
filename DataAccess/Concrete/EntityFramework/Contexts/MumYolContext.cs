@@ -1,7 +1,11 @@
 ﻿using Core.Entities.Concrete;
+using Core.Utilities.IoC;
+using Entities;
 using Entities.Concrete;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -13,10 +17,16 @@ namespace DataAccess.Concrete.EntityFramework.Contexts
 {
 	public class MumYolContext : DbContext
 	{
+		protected readonly IConfiguration Configuration;
 
+		public MumYolContext()
+		{
+			Configuration = ServiceTool.ServiceProvider.GetService<IConfiguration>();
+		}
 		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 		{
-			optionsBuilder.UseSqlServer(@"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=MumYol;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False");
+			optionsBuilder.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
+			//optionsBuilder.UseSqlServer(@"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=MumYol;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False");
 		}
 
 		public DbSet<OperationClaim> OperationClaims { get; set; }
