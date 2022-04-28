@@ -1,5 +1,6 @@
 ﻿using Business.Abstract;
 using Business.Concrete;
+using Core.Entities.Concrete;
 using DataAccess.Concrete.EntityFramework;
 using Entities.Concrete;
 using Entities.DTOs;
@@ -63,6 +64,29 @@ namespace WebAPI.Controllers
         public IActionResult GetBalanceHistory()
         {
             var result = _balanceHistoryService.GetAll();
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+            return BadRequest(result);
+        }
+
+        [HttpPost("updateuser")]
+        public IActionResult UpdateUser(User user)
+        {
+            var result = _userService.Update(user);
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+            return BadRequest(result);
+        }
+
+
+        [HttpPost("updateuserstatus")]
+        public IActionResult UpdateUserStatus(UserStatusUpdateDto user)
+        {
+            var result = _userService.UpdateUserStatus(user);
             if (result.Success)
             {
                 return Ok(result);

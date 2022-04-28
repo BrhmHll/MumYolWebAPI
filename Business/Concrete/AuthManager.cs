@@ -1,4 +1,5 @@
 ﻿using Business.Abstract;
+using Business.BusinessAspects.Autofac;
 using Business.Constants;
 using Business.ValidationRules.FluentValidation;
 using Core.Aspects.Autofac.Validation;
@@ -32,15 +33,15 @@ namespace Business.Concrete
         public IDataResult<User> Register(UserForRegisterDto panelUserForRegisterDto)
         {
             //For test its closed
-            var key = string.Format(Messages.VerificationCodeWithPhoneKey, panelUserForRegisterDto.PhoneNumber);
-            var verificationCode = _cacheManager.Get(key).ToString();
-            if (verificationCode == null)
-                return new ErrorDataResult<User>("Doğrulama kodu bulunamadı veya zaman aşımına uğradı! Lütfen tekrar onay kodu alınız.");
-            if (panelUserForRegisterDto.VerificationCode != verificationCode)
-                return new ErrorDataResult<User>("Hatalı doğrulama kodu! Lütfen tekrar deneyiniz.");
-            var res = CheckPhone(panelUserForRegisterDto.PhoneNumber, panelUserForRegisterDto.VerificationCode);
-            if (!res.Success)
-                return new ErrorDataResult<User>(res.Message);
+            //var key = string.Format(Messages.VerificationCodeWithPhoneKey, panelUserForRegisterDto.PhoneNumber);
+            //var verificationCode = _cacheManager.Get(key).ToString();
+            //if (verificationCode == null)
+            //    return new ErrorDataResult<User>("Doğrulama kodu bulunamadı veya zaman aşımına uğradı! Lütfen tekrar onay kodu alınız.");
+            //if (panelUserForRegisterDto.VerificationCode != verificationCode)
+            //    return new ErrorDataResult<User>("Hatalı doğrulama kodu! Lütfen tekrar deneyiniz.");
+            //var res = CheckPhone(panelUserForRegisterDto.PhoneNumber, panelUserForRegisterDto.VerificationCode);
+            //if (!res.Success)
+            //    return new ErrorDataResult<User>(res.Message);
 
             byte[] passwordHash, passwordSalt;
             HashingHelper.CreatePasswordHash(panelUserForRegisterDto.Password, out passwordHash, out passwordSalt);
@@ -55,10 +56,12 @@ namespace Business.Concrete
                 Address = panelUserForRegisterDto.Address,
                 Status = true,
                 CreatedDate = System.DateTime.Now,
-                PhoneNumberVerificated = true,
+                PhoneNumberVerificated = false,
                 VerificationCode = panelUserForRegisterDto.VerificationCode,
             };
-            _panelUserService.Add(panelUser);
+            var res = _panelUserService.Add(panelUser);
+            if(!res.Success)
+                return new ErrorDataResult<User>(res.Message);
             _cacheManager.Add("last_user", panelUser, 60);
             
             return new SuccessDataResult<User>(panelUser, Messages.UserRegistered);
@@ -82,7 +85,7 @@ namespace Business.Concrete
 
         public IResult UserExists(string phoneNumber)
         {
-            if (_panelUserService.GetByPhoneNumber(phoneNumber) != null)
+            if (_panelUserService.GetByPhoneNumber(phoneNumber).Success)
             {
                 return new ErrorResult(Messages.UserAlreadyExists);
             }
@@ -104,7 +107,7 @@ namespace Business.Concrete
             var msg = string.Format(Messages.VerificationMessage, code);
             //SmsIntegration.SendSms(phoneNumber, msg);
             var key = string.Format(Messages.VerificationCodeWithPhoneKey, phoneNumber);
-            _cacheManager.Add(key, code, 3);
+            _cacheManager.Add(key, code, 10);
             return new SuccessResult("Doğrulama kodu " + code + " gönderildi: " + phoneNumber);
         }
 
@@ -126,6 +129,26 @@ namespace Business.Concrete
         {
             var user = _cacheManager.Get<User>("last_user");
             return new SuccessDataResult<User>(user);
+        }
+
+        [SecuredOperation("admin,personnel")]
+        public IResult ResetPasswordByAdmin(int userId)
+        {
+            var user = _panelUserService.GetUserById(userId);
+            if (!user.Success) return new ErrorResult(user.Message);
+
+
+            var psw = SmsIntegration.CreateRandomPassword();
+            var msg = string.Format(Messages.NewPasswordMessage, psw);
+
+            byte[] passwordHash, passwordSalt;
+            HashingHelper.CreatePasswordHash(psw, out passwordHash, out passwordSalt);
+            user.Data.PasswordSalt = passwordSalt;
+            user.Data.PasswordHash = passwordHash;
+            _panelUserService.Update(user.Data);
+            SmsIntegration.SendSms(user.Data.PhoneNumber, msg);
+
+            return new SuccessResult("Şifre sıfırlandı!");
         }
     }
 }

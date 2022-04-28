@@ -24,7 +24,7 @@ namespace Business.ValidationRules.FluentValidation
 			RuleFor(p => p.LastName).NotEmpty();
 			RuleFor(p => p.LastName).MinimumLength(2);
 			RuleFor(p => p.Address).NotEmpty();
-			RuleFor(p => p.Address).MinimumLength(30);
+			RuleFor(p => p.Address).MinimumLength(10);
 			RuleFor(p => p.Email).Must(MailIsValid);
 		}
 

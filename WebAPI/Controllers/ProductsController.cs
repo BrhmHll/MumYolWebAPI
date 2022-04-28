@@ -1,5 +1,6 @@
 ﻿using Business.Abstract;
 using Business.Concrete;
+using Core.Utilities.Results;
 using DataAccess.Concrete.EntityFramework;
 using Entities.Concrete;
 using Entities.DTOs;
@@ -49,6 +50,21 @@ namespace WebAPI.Controllers
 			return BadRequest(result);
 		}
 
+		[HttpGet("getbyid2")]
+		public IActionResult GetDetailsById2(int id)
+		{
+			var result = _productService.GetDetailsById(id);
+			IDataResult<List<ProductDetailDto>> newResult;
+			
+			if (result.Success)
+			{
+				newResult = new SuccessDataResult<List<ProductDetailDto>>(new List<ProductDetailDto>());
+				newResult.Data.Add(result.Data);
+				return Ok(newResult);
+			}
+			newResult = new ErrorDataResult<List<ProductDetailDto>>();
+			return BadRequest(newResult);
+		}
 
 		[HttpPost("add")]
 		public IActionResult Add(Product product)

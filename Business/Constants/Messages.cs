@@ -10,6 +10,7 @@ namespace Business.Constants
 	public static class Messages
 	{
 		public static string VerificationMessage = "MUMYOL doğrulama kodunuz: {0}";
+		public static string NewPasswordMessage = "MUMYOL uygulamasına yeni şifrenizle giriş yapabilirsiniz: {0}";
 		public static string NewOrderMessage = "Sn. {0}, {1} tarihi itibariyle {2} kullanıcıdan yeni siparişiniz var!";
 		public static string VerificationCodeWithPhoneKey = "verification.code.with.phone.key.{0}";
 

@@ -37,7 +37,7 @@ namespace Business.Concrete
         {
             var catExists = _categoryDal.GetAll(c => c.Name.Equals(category.Name)).FirstOrDefault();
             if (catExists != null) return new ErrorResult("Bu isimde bir kategori zaten mevcut!");
-            category.Id = 0;
+            category.Id = 0; 
             category.ImagePath = "";
             _categoryDal.Add(category);
             return new SuccessResult("Kategori Eklendi");
@@ -48,8 +48,12 @@ namespace Business.Concrete
         [CacheRemoveAspect("ICategoryService.Get")]
         public IResult Update(Category category)
         {
-            var catExists = _categoryDal.GetAll(c => c.Name.Equals(category.Name)).FirstOrDefault();
-            if (catExists != null) return new ErrorResult("Bu isimde bir kategori zaten mevcut!");
+            var getName = _categoryDal.Get(c => c.Id.Equals(category.Id));
+            if (getName.Name != category.Name)
+            { 
+                var catExists = _categoryDal.GetAll(c => c.Name.Equals(category.Name)).FirstOrDefault();
+                if (catExists != null) return new ErrorResult("Bu isimde bir kategori zaten mevcut!");
+            }
             _categoryDal.Update(category);
             return new SuccessResult("Kategori Guncellendi");
         }

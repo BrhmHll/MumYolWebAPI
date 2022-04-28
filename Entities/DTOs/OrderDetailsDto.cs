@@ -18,6 +18,8 @@ namespace Entities.DTOs
         public string UserEmail { get; set; }
         public int OrderStatus { get; set; }
         public decimal PayBack { get; set; }
+        public decimal Cost { get; set; }
+        public decimal TotalPrice { get; set; }
         public string Address { get; set; }
         public DateTime CreatedDate { get; set; }
         public List<OrderItemDetail> OrderItems { get; set; }

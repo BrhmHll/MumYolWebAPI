@@ -8,6 +8,7 @@ namespace Business.Abstract
 	public interface IAuthService
     {
         IResult RegisterPhone(string phone);
+        IResult ResetPasswordByAdmin(int userId);
         IResult CheckPhone(string phoneNumber, string verificationCode);
         IDataResult<User> Register(UserForRegisterDto panelUserForRegisterDto);
         IDataResult<User> Login(UserForLoginDto panelUserForLoginDto);

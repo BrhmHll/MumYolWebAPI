@@ -94,6 +94,8 @@ namespace Business.Concrete
 			var productDetails = _productDal.GetProductDetails(productId);
 			if(productDetails == null)
 				return new ErrorDataResult<ProductDetailDto>("Urun bulunamadi");
+			if(productDetails.ImagePaths.Count == 0)
+				productDetails.ImagePaths = new List<string> { ConstantValues.logoPath };
 			return new SuccessDataResult<ProductDetailDto>(productDetails);
 		}
 
@@ -112,6 +114,7 @@ namespace Business.Concrete
         {
             if (searchKey == null || searchKey.Length < 3)
 				return new ErrorDataResult<List<ProductDetailDto>>("Arama anahtarı 3 karakter veya daha uzun olmalı!");
+			searchKey.Trim();
 			searchKey = searchKey.ToLower();
 			var allData = GetAllProductDetailsByCategoryId(0);
 			var foundedProducts = new List<ProductDetailDto>();

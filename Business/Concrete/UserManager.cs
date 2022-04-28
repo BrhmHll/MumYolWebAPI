@@ -38,6 +38,8 @@ namespace Business.Concrete
 
         public IResult Add(User panelUser)
         {
+            if (_panelUserDal.Get(u => u.PhoneNumber == panelUser.PhoneNumber) != null)
+                return new ErrorResult("Bu telefon numarası zaten kayıtlı!");
             _panelUserDal.Add(panelUser);
             _panelUserDal.AddUserRole(panelUser.Id);
             return new SuccessResult("Kullanici eklendi");
@@ -56,7 +58,7 @@ namespace Business.Concrete
         {
             var user = _panelUserDal.Get(u => u.PhoneNumber == phoneNumber && u.Status);
             if (user == null)
-                return new ErrorDataResult<User>("Bu maile ait kulanici bulunamadi!");
+                return new ErrorDataResult<User>("Bu telefona ait kulanici bulunamadi!");
             return new SuccessDataResult<User>(user);
         }
 
@@ -87,6 +89,9 @@ namespace Business.Concrete
         [SecuredOperation("personnel,admin")]
         public IResult Update(User user)
         {
+            var userr = _panelUserDal.Get(u => u.Id.Equals(user.Id));
+            if (userr == null)
+                return new ErrorResult("Kullanıcı Bulunamadı!");
             _panelUserDal.Update(user);
             return new SuccessResult("Kullanici guncellendi");
 
@@ -139,6 +144,16 @@ namespace Business.Concrete
                 });
             }
             return new SuccessDataResult<List<UserProfileDto>>(usersProfiles);
+        }
+
+        public IResult UpdateUserStatus(UserStatusUpdateDto userStatusUpdateDto)
+        {
+            var user = _panelUserDal.Get(u => u.Id.Equals(userStatusUpdateDto.UserId));
+            if(user  == null)
+                return new ErrorResult("Kullanıcı bulunamadı!");
+            user.Status = userStatusUpdateDto.Status;
+            _panelUserDal.Update(user);
+            return new SuccessResult("Kullanıcı durumu " + (user.Status ? "Aktif" : "Pasif") + " olarak ayarlandı.");
         }
     }
 }

@@ -22,5 +22,6 @@ namespace Business.Abstract
         IDataResult<List<UserProfileDto>> GetAllUserProfile();
         IDataResult<UserProfileDto> UpdateUserProfile(UserForUpdateDto user);
         User GetAdmin();
+        IResult UpdateUserStatus(UserStatusUpdateDto userStatusUpdateDto);
     }
 }

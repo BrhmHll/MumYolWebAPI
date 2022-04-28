@@ -114,8 +114,11 @@ namespace Business.Concrete
             if(basketItem.Quantity == 0)
                 _basketItemDal.Delete(item);
             else
+            {
                 item.Quantity = basketItem.Quantity;
                 _basketItemDal.Update(item);
+            }
+               
             return new SuccessResult("Urun Guncellendi!");
         }
     }

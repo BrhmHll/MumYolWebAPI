@@ -40,7 +40,7 @@ namespace Business.Concrete
         }
 
         [SecuredOperation("personnel,admin")]
-        [CacheAspect]
+        //[CacheAspect]
         public IDataResult<List<InsufficientStock>> GetAllInsufficientStocks()
         {
             var orders = _orderDal.GetAll(o => o.OrderStatus.Equals((int)OrderStatusEnum.Waiting) || o.OrderStatus.Equals((int)OrderStatusEnum.Approved));
@@ -89,6 +89,8 @@ namespace Business.Concrete
                 orderDetailsDto.PayBack = order.PayBack;
                 orderDetailsDto.OrderItems = _orderItemDal.GetAllOrderItemDetails(order.Id);
                 orderDetailsDto.Address = order.Address;
+                orderDetailsDto.TotalPrice = order.TotalPrice;
+                orderDetailsDto.Cost = order.Cost;
                 var user = _userService.GetUserById(order.UserId);
                 if (user.Success)
                 {
@@ -103,7 +105,6 @@ namespace Business.Concrete
         }
 
         [SecuredOperation("user,personnel,admin")]
-        [CacheAspect]
         public IDataResult<List<OrderDetailsDto>> GetAllOrderDetailsByUser()
         {
             var orderDetailsDtos = new List<OrderDetailsDto>();
@@ -153,7 +154,6 @@ namespace Business.Concrete
         }
 
         [SecuredOperation("user,personnel,admin")]
-        [CacheAspect]
         public IDataResult<List<Order>> GetOrdersByUser()
         {
             return new SuccessDataResult<List<Order>>(_orderDal.GetAll(o => o.UserId.Equals(_userService.GetUser().Id)));
@@ -163,7 +163,11 @@ namespace Business.Concrete
         [CacheRemoveAspect("IOrderService.Get")]
         public IDataResult<int> OrderBasket()
         {
+            var user = _userService.GetUser();
+            if (!user.Status)
+                return new ErrorDataResult<int>(0, "Üyelik durumunuz aktif değildir!.");
             Decimal totalPrice = 0;
+            Decimal totalCost = 0;
             Decimal paybackTotal = 0;
             var basketItems = _basketService.GetAll();
             if (basketItems.Data.Count == 0)
@@ -186,6 +190,7 @@ namespace Business.Concrete
                     PayBackRate = product.Data.PayBackRate,
                     PurchasePrice = product.Data.PurchasePrice,
                 };
+                totalCost += orderItem.Quantity * (orderItem.PurchasePrice);
                 totalPrice += orderItem.Quantity * orderItem.Price;
                 paybackTotal += (orderItem.Quantity * (orderItem.Price - product.Data.PurchasePrice)) * ((decimal)product.Data.PayBackRate / 100);
                 orderItems.Add(orderItem);
@@ -195,13 +200,14 @@ namespace Business.Concrete
                 return new ErrorDataResult<int>("Toplam tutar en az 1000 tl olmalidir!");
             }
 
-            var user =_userService.GetUser();
             var order = new Order();
             order.UserId = user.Id;
             order.CreatedDate = DateTime.Now;
             order.OrderStatus = (int)OrderStatusEnum.Waiting;
             order.PayBack = paybackTotal;
             order.Address = user.Address;
+            order.TotalPrice = totalPrice;
+            order.Cost = totalCost;
             _orderDal.Add(order);
 
             foreach (var item in orderItems)

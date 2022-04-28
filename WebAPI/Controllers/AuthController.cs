@@ -79,6 +79,16 @@ namespace WebAPI.Controllers
             return Ok(res);
         }
 
+        [HttpGet("resetpasswordbyadmin")]
+        public ActionResult ResetPasswordByAdmin(int userId)
+        {
+            var res = _authService.ResetPasswordByAdmin(userId);
+            if (!res.Success)
+                return BadRequest(res);
+
+            return Ok(res);
+        }
+
         [HttpPost("sendsms")]
         public ActionResult SendSms(string phone)
         {
