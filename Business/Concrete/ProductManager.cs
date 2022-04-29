@@ -28,11 +28,13 @@ namespace Business.Concrete
 	{
 		IProductDal _productDal;
 		ICategoryService _categoryService;
+		IUserService _userService;	
 
-		public ProductManager(IProductDal productDal, ICategoryService categoryService)
+		public ProductManager(IProductDal productDal, ICategoryService categoryService, IUserService userService)
 		{
 			_productDal = productDal;
 			_categoryService = categoryService;
+			_userService = userService;
 		}
 
 		[SecuredOperation("personnel,admin")]
@@ -78,12 +80,26 @@ namespace Business.Concrete
 		[CacheAspect]
 		public IDataResult<List<ProductDetailDto>> GetAllProductDetailsByCategoryId(int categoryId)
         {
+			var isAdmin = false;
 			var productDetailDtos = _productDal.GetAllProductDetails(categoryId);
-
+            var user = _userService.GetUser();
+            if (user != null)
+            {
+                var claims = _userService.GetClaims(user);
+                if (claims.Where(c => c.Name == "admin" || c.Name == "personnel").Count() > 0)
+                    isAdmin = true;
+            }
+            if (!isAdmin)
+            {
+                productDetailDtos.RemoveAll(p => p.IsActive == false);
+            }
             foreach (var item in productDetailDtos)
-                if (item.ImagePaths.Count == 0)
+            {
+				if(!item.IsActive) item.Name = "(Pasif!) " + item.Name;
+				if (item.ImagePaths.Count == 0)
 					item.ImagePaths.Add(ConstantValues.logoPath);
-
+			}
+			
 			return new SuccessDataResult<List<ProductDetailDto>>(productDetailDtos);
         }
 

@@ -173,6 +173,7 @@ namespace Business.Concrete
             if (basketItems.Data.Count == 0)
                 return new ErrorDataResult<int>("Sepet Bos!");
 
+
             var orderItems = new List<OrderItem>();
             foreach (var item in basketItems.Data)
             {
@@ -187,7 +188,7 @@ namespace Business.Concrete
                     ProductId = item.ProductId,
                     Quantity = item.Quantity,
                     Price = item.Quantity > product.Data.MinQuantityForWholesale ? product.Data.WholesalePrice : product.Data.RetailPrice,
-                    PayBackRate = product.Data.PayBackRate,
+                    PayBackRate = item.Quantity > product.Data.MinQuantityForWholesale ? product.Data.PayBackRateWholesale : product.Data.PayBackRate,
                     PurchasePrice = product.Data.PurchasePrice,
                 };
                 totalCost += orderItem.Quantity * (orderItem.PurchasePrice);

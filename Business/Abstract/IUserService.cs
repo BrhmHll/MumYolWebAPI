@@ -1,5 +1,6 @@
 ﻿using Core.Entities.Concrete;
 using Core.Utilities.Results;
+using Entities.Concrete;
 using Entities.DTOs;
 using System;
 using System.Collections.Generic;
@@ -23,5 +24,7 @@ namespace Business.Abstract
         IDataResult<UserProfileDto> UpdateUserProfile(UserForUpdateDto user);
         User GetAdmin();
         IResult UpdateUserStatus(UserStatusUpdateDto userStatusUpdateDto);
+        IResult PaybackPayment(PaybackPaymentDto paybackPaymentDto);
+        IDataResult<List<BalanceHistory>> GetAllBalanceHistories();
     }
 }

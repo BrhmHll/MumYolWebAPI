@@ -60,10 +60,21 @@ namespace WebAPI.Controllers
             return BadRequest(result);
         }
 
+        [HttpPost("paybackpayment")]
+        public IActionResult PaybackPayment(PaybackPaymentDto paybackPaymentDto)
+        {
+            var result = _userService.PaybackPayment(paybackPaymentDto);
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+            return BadRequest(result);
+        }
+
         [HttpGet("getbalancehistory")]
         public IActionResult GetBalanceHistory()
         {
-            var result = _balanceHistoryService.GetAll();
+            var result = _userService.GetAllBalanceHistories();
             if (result.Success)
             {
                 return Ok(result);

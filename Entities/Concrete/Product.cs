@@ -20,7 +20,8 @@ namespace Entities.Concrete
         public decimal RetailPrice { get; set; }
 		public int MinQuantityForWholesale { get; set; }
         public int PayBackRate { get; set; }
-        public int StockAmount { get; set; }
+        public int PayBackRateWholesale { get; set; }
+		public int StockAmount { get; set; }
 		public bool IsActive { get; set; }
 	}
 }

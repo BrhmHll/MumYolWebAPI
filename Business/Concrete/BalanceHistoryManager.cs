@@ -6,6 +6,7 @@ using Core.Aspects.Autofac.Validation;
 using Core.Utilities.Results;
 using DataAccess.Abstract;
 using Entities.Concrete;
+using Entities.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,12 +18,10 @@ namespace Business.Concrete
     public class BalanceHistoryManager : IBalanceHistoryService
     {
         IBalanceHistoryDal _balanceHistoryDal;
-        IUserService _userService;
 
-        public BalanceHistoryManager(IBalanceHistoryDal balanceHistoryDal, IUserService userService)
+        public BalanceHistoryManager(IBalanceHistoryDal balanceHistoryDal)
         {
             _balanceHistoryDal = balanceHistoryDal;
-            _userService = userService;
         }
 
         [SecuredOperation("personnel,admin")]
@@ -44,9 +43,9 @@ namespace Business.Concrete
 
         [CacheAspect]
         [SecuredOperation("user,personnel,admin")]
-        public IDataResult<List<BalanceHistory>> GetAll()
+        public IDataResult<List<BalanceHistory>> GetAllByUserId(int userId)
         {
-            return new SuccessDataResult<List<BalanceHistory>>(_balanceHistoryDal.GetAll(b => b.UserId.Equals(_userService.GetUser().Id)));
+            return new SuccessDataResult<List<BalanceHistory>>(_balanceHistoryDal.GetAll(b => b.UserId.Equals(userId)));
         }
 
         [CacheAspect]

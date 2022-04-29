@@ -22,8 +22,7 @@ namespace DataAccess.Concrete.EntityFramework
 				var result = from p in context.Products
 							 join c in context.Categories
 							 on p.CategoryId equals c.Id
-							 where p.IsActive == true
-							 && categoryId != 0 ? p.CategoryId == categoryId : true
+							 where categoryId != 0 ? p.CategoryId == categoryId : true
 							 select new ProductDetailDto {
 								 Id = p.Id,
 								 Name = p.Name,
@@ -36,6 +35,7 @@ namespace DataAccess.Concrete.EntityFramework
 								 StockAmount = p.StockAmount,
 								 Unit = p.Unit,
 								 PayBackRate = p.PayBackRate,
+								 PayBackRateWholesale = p.PayBackRateWholesale,
 								 PurchasePrice = p.PurchasePrice,
 								 WholesalePrice = p.WholesalePrice,
 								 CategoryName = c.Name,
@@ -67,6 +67,7 @@ namespace DataAccess.Concrete.EntityFramework
 								 StockAmount = p.StockAmount,
 								 Unit = p.Unit,
 								 PayBackRate = p.PayBackRate,
+								 PayBackRateWholesale = p.PayBackRateWholesale,
 								 PurchasePrice = p.PurchasePrice,
 								 WholesalePrice = p.WholesalePrice,
 								 ImagePaths = (from pi in context.ProductImages

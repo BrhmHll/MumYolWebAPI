@@ -8,6 +8,7 @@ using Core.Entities.Concrete;
 using Core.Utilities.IoC;
 using Core.Utilities.Results;
 using DataAccess.Abstract;
+using Entities.Concrete;
 using Entities.DTOs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,11 +25,13 @@ namespace Business.Concrete
     {
         IUserDal _panelUserDal;
         IHttpContextAccessor _contextAccessor;
+        IBalanceHistoryService _balanceHistoryService;
 
-        public UserManager(IUserDal panelUserDal)
+        public UserManager(IUserDal panelUserDal, IBalanceHistoryService balanceHistoryService)
         {
             _panelUserDal = panelUserDal;
             _contextAccessor = ServiceTool.ServiceProvider.GetService<IHttpContextAccessor>();
+            _balanceHistoryService = balanceHistoryService;
         }
 
         public List<OperationClaim> GetClaims(User panelUser)
@@ -154,6 +157,38 @@ namespace Business.Concrete
             user.Status = userStatusUpdateDto.Status;
             _panelUserDal.Update(user);
             return new SuccessResult("Kullanıcı durumu " + (user.Status ? "Aktif" : "Pasif") + " olarak ayarlandı.");
+        }
+
+        [SecuredOperation("admin,personnel")]
+        public IResult PaybackPayment(PaybackPaymentDto paybackPaymentDto)
+        {
+            var user = _panelUserDal.Get(u => u.Id.Equals(paybackPaymentDto.UserId));
+            if (user == null)
+                return new ErrorResult("Kullanıcı bulunamadı!");
+            var balanceHistory = new BalanceHistory()
+            {
+                Money = 0 - paybackPaymentDto.PaybackAmount,
+                BalanceAfter = user.Balance - paybackPaymentDto.PaybackAmount,
+                Date = DateTime.Now,
+                UserId = paybackPaymentDto.UserId,
+            };
+            if (balanceHistory.BalanceAfter < 0)
+            {
+                return new ErrorResult("Hesap bakiyesinden fazla ödeme yapamazsınız!\nBakiye: " + user.Balance.ToString());
+            }
+
+            _balanceHistoryService.Add(balanceHistory);
+
+            user.Balance = balanceHistory.BalanceAfter;
+            _panelUserDal.Update(user);
+            return new SuccessResult("Ödeme gerçekleşti.\n" + user.FirstName + " " + user.LastName + " Tutar: " + paybackPaymentDto.PaybackAmount.ToString());
+        }
+
+        [SecuredOperation("admin,personnel,user")]
+        public IDataResult<List<BalanceHistory>> GetAllBalanceHistories()
+        {
+            var histories = _balanceHistoryService.GetAllByUserId(GetUser().Id);
+            return new SuccessDataResult<List<BalanceHistory>>(histories.Data);
         }
     }
 }
