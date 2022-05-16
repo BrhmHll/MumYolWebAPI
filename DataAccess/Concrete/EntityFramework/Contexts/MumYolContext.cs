@@ -40,6 +40,7 @@ namespace DataAccess.Concrete.EntityFramework.Contexts
 		public DbSet<Setting> Settings { get; set; }
 		public DbSet<ProductImage> ProductImages { get; set; }
 		public DbSet<BalanceHistory> BalanceHistories { get; set; }
+		public DbSet<Ads> Ads { get; set; }
 
 
 

@@ -196,9 +196,9 @@ namespace Business.Concrete
                 paybackTotal += (orderItem.Quantity * (orderItem.Price - product.Data.PurchasePrice)) * ((decimal)product.Data.PayBackRate / 100);
                 orderItems.Add(orderItem);
             }
-            if (totalPrice < 1000)
+            if (totalPrice < 500)
             {
-                return new ErrorDataResult<int>("Toplam tutar en az 1000 tl olmalidir!");
+                return new ErrorDataResult<int>("Toplam tutar en az 500 tl olmalidir!");
             }
 
             var order = new Order();
