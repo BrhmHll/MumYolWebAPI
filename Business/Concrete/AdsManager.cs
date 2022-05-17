@@ -1,4 +1,5 @@
 ﻿using Business.Abstract;
+using Business.BusinessAspects.Autofac;
 using Core.Aspects.Autofac.Caching;
 using Core.Utilities.Helper;
 using Core.Utilities.Results;
@@ -22,6 +23,7 @@ namespace Business.Concrete
             _adsDal = adsDal;
         }
 
+        [SecuredOperation("personnel,admin")]
         [CacheRemoveAspect("IAdsService.Get")]
         public IResult Add(IFormFile image)
         {
@@ -42,7 +44,7 @@ namespace Business.Concrete
             var ads = _adsDal.GetAll(); 
             return new SuccessDataResult<List<Ads>>(ads);
         }
-
+        [SecuredOperation("personnel,admin")]
         [CacheRemoveAspect("IAdsService.Get")]
         public IResult Remove(int id)
         {
