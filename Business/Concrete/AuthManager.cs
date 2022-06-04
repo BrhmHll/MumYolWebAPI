@@ -47,13 +47,13 @@ namespace Business.Concrete
             HashingHelper.CreatePasswordHash(panelUserForRegisterDto.Password, out passwordHash, out passwordSalt);
             var panelUser = new User
             {
-                Email = panelUserForRegisterDto.Email,
+                //Email = panelUserForRegisterDto.Email,
                 FirstName = panelUserForRegisterDto.FirstName,
                 LastName = panelUserForRegisterDto.LastName,
                 PasswordHash = passwordHash,
                 PasswordSalt = passwordSalt,
                 PhoneNumber = panelUserForRegisterDto.PhoneNumber,
-                Address = panelUserForRegisterDto.Address,
+                //Address = panelUserForRegisterDto.Address,
                 Status = true,
                 CreatedDate = System.DateTime.Now,
                 PhoneNumberVerificated = false,

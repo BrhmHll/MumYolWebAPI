@@ -50,10 +50,10 @@ namespace Business.Concrete
 
         public IDataResult<User> GetByMail(string email)
         {
-            var user = _panelUserDal.Get(u => (u.Email == email) && u.Status);
-            if (user == null)
-                return new ErrorDataResult<User>("Bu maile ait kulanici bulunamadi!");
-            return new SuccessDataResult<User>(user);
+            //var user = _panelUserDal.Get(u => (u.Email == email) && u.Status);
+            //if (user == null)
+            //    return new ErrorDataResult<User>("Bu maile ait kulanici bulunamadi!");
+            return new ErrorDataResult<User>("Mail devredisi");
 
         }
 
@@ -106,9 +106,9 @@ namespace Business.Concrete
             if (user == null) return new ErrorDataResult<UserProfileDto>("Kullanici bulunamadi!");
             var userProfile = new UserProfileDto()
             {
-                Address = user.Address,
+                //Address = user.Address,
                 Balance = user.Balance,
-                Email = user.Email,
+                //Email = user.Email,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 PhoneNumber = user.PhoneNumber,
@@ -120,10 +120,10 @@ namespace Business.Concrete
         {
             var userOriginal = GetUser();
             if (userOriginal == null) return new ErrorDataResult<UserProfileDto>("Kullanici bulunamadi!");
-            userOriginal.Address = user.Address;
+            //userOriginal.Address = user.Address;
             userOriginal.FirstName = user.FirstName;
             userOriginal.LastName = user.LastName;
-            userOriginal.Email = user.Email;
+            //userOriginal.Email = user.Email;
             _panelUserDal.Update(userOriginal);
             return GetUserProfile();
         }
@@ -136,9 +136,9 @@ namespace Business.Concrete
             {
                 usersProfiles.Add(new UserProfileDto()
                 {
-                    Address=user.Address,
+                    //Address=user.Address,
                     Balance=user.Balance,
-                    Email=user.Email,
+                    //Email=user.Email,
                     FirstName=user.FirstName,
                     LastName=user.LastName,
                     PhoneNumber=user.PhoneNumber,

@@ -51,9 +51,9 @@ namespace DataAccess.Concrete.EntityFramework
 						   select new User
                            {
 							   Id = User.Id,
-							   Address = User.Address,
+							   //Address = User.Address,
 							   CreatedDate = User.CreatedDate,
-							   Email = User.Email,
+							   //Email = User.Email,
 							   FirstName = User.FirstName,
 							   LastName = User.LastName,
 							   PhoneNumber = User.PhoneNumber,

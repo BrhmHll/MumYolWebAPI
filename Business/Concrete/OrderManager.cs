@@ -97,7 +97,7 @@ namespace Business.Concrete
                     orderDetailsDto.UserName = user.Data.FirstName;
                     orderDetailsDto.UserSurname = user.Data.LastName;
                     orderDetailsDto.UserPhone = user.Data.PhoneNumber;
-                    orderDetailsDto.UserEmail = user.Data.Email;
+                    //orderDetailsDto.UserEmail = user.Data.Email;
                 }
                 orderDetailsDtos.Add(orderDetailsDto);
             }
@@ -206,7 +206,7 @@ namespace Business.Concrete
             order.CreatedDate = DateTime.Now;
             order.OrderStatus = (int)OrderStatusEnum.Waiting;
             order.PayBack = paybackTotal;
-            order.Address = user.Address;
+            //order.Address = user.Address;
             order.TotalPrice = totalPrice;
             order.Cost = totalCost;
             _orderDal.Add(order);
